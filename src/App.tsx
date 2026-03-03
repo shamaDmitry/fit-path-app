@@ -1,6 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Provider } from "react-redux";
+import { store } from "./store";
+
 // import AppLayout from "@/components/layout/AppLayout";
 
 // function ProtectedRoute({
@@ -53,9 +57,13 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppRoutes />
-    </BrowserRouter>
+    <Provider store={store}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </Provider>
   );
 }
 
