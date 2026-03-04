@@ -19,14 +19,19 @@ import {
 import BookingDialog from "@/components/booking/BookingDialog";
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
+import { getUserInitials } from "@/lib/utils";
 
 const TrainerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const trainers = useAppSelector((s) => s.trainers.trainers);
-  const timeslots = useAppSelector((s) => s.timeslots.timeslots);
-  const appointments = useAppSelector((s) => s.appointments.appointments);
-  const user = useAppSelector((s) => s.auth.user);
+
+  const trainers = useAppSelector((store) => store.trainers.trainers);
+  const timeslots = useAppSelector((store) => store.timeslots.timeslots);
+  const appointments = useAppSelector(
+    (store) => store.appointments.appointments,
+  );
+  const user = useAppSelector((store) => store.auth.user);
+
   const [bookingOpen, setBookingOpen] = useState(false);
 
   const trainer = trainers.find((t) => t.id === id);
@@ -44,10 +49,7 @@ const TrainerProfile = () => {
 
   const color = trainerColors[trainer.id] || "158 64% 32%";
 
-  const initials = trainer.full_name
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
+  const initials = getUserInitials(trainer.full_name);
 
   const availableSlots = timeslots.filter(
     (ts) => ts.trainer_id === trainer.id && !ts.is_booked,
@@ -57,9 +59,9 @@ const TrainerProfile = () => {
     (a) => a.trainer_id === trainer.id && a.status === "completed",
   ).length;
 
-  const totalSessions = appointments.filter(
-    (a) => a.trainer_id === trainer.id,
-  ).length;
+  // const totalSessions = appointments.filter(
+  //   (a) => a.trainer_id === trainer.id,
+  // ).length;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

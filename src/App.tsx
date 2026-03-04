@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import UserProfilePage from "@/pages/profile/UserProfilePage";
 import FindTrainers from "@/pages/user/FindTrainers";
 import UserBookings from "@/pages/user/UserBookings";
+import TrainerProfile from "@/pages/trainers/TrainerProfile";
 
 function ProtectedRoute({
   children,
@@ -83,7 +84,11 @@ function AppRoutes() {
       {/* Shared detail routes */}
       <Route
         path="/trainers/:id"
-        element={<ProtectedRoute>{/* <TrainerProfile /> */}</ProtectedRoute>}
+        element={
+          <ProtectedRoute>
+            <TrainerProfile />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/appointments/:id"

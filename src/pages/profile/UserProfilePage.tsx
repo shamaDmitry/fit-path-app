@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Calendar, Shield } from "lucide-react";
 import { format } from "date-fns";
+import { getUserInitials } from "@/lib/utils";
 
 const UserProfilePage = () => {
   const user = useAppSelector((s) => s.auth.user);
@@ -13,10 +14,7 @@ const UserProfilePage = () => {
 
   if (!user) return null;
 
-  const initials = user.full_name
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
+  const initials = getUserInitials(user.full_name);
 
   const myAppointments = appointments.filter((appointment) => {
     return (
@@ -32,9 +30,9 @@ const UserProfilePage = () => {
     (appointment) => appointment.status === "completed",
   ).length;
 
-  const cancelled = myAppointments.filter(
-    (appointment) => appointment.status === "cancelled",
-  ).length;
+  // const cancelled = myAppointments.filter(
+  //   (appointment) => appointment.status === "cancelled",
+  // ).length;
 
   const totalSpent = myAppointments
     .filter((appointment) => appointment.paid && appointment.price)
