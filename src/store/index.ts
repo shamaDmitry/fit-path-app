@@ -5,16 +5,16 @@ import {
   type TypedUseSelectorHook,
 } from "react-redux";
 import authReducer from "./slices/authSlice";
-// import trainersReducer from "./slices/trainersSlice";
-// import appointmentsReducer from "./slices/appointmentsSlice";
-// import timeslotsReducer from "./slices/timeslotsSlice";
+import trainersReducer from "./slices/trainersSlice";
+import appointmentsReducer from "./slices/appointmentsSlice";
+import timeslotsReducer from "./slices/timeslotsSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    // trainers: trainersReducer,
-    // appointments: appointmentsReducer,
-    // timeslots: timeslotsReducer,
+    trainers: trainersReducer,
+    appointments: appointmentsReducer,
+    timeslots: timeslotsReducer,
   },
 });
 

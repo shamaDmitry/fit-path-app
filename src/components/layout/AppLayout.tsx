@@ -33,6 +33,7 @@ import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { NavLink } from "@/components/NavLink";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { logout } from "@/store/slices/authSlice";
+import { cn } from "@/lib/utils";
 
 const userNav = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -58,10 +59,15 @@ const adminNav = [
 
 function AppSidebarContent() {
   const { state } = useSidebar();
+
   const collapsed = state === "collapsed";
+
   const user = useAppSelector((s) => s.auth.user);
+
   const dispatch = useAppDispatch();
+
   const navigate = useNavigate();
+
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const navItems =
@@ -87,8 +93,13 @@ function AppSidebarContent() {
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarContent className="flex flex-col justify-between">
         <div>
-          <div className="p-4 flex items-center justify-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
+          <NavLink
+            to="/"
+            className={cn("p-4 flex items-center gap-2", {
+              "justify-center": collapsed,
+            })}
+          >
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
               <Dumbbell className="w-4 h-4 text-primary-foreground" />
             </div>
 
@@ -97,7 +108,7 @@ function AppSidebarContent() {
                 FitPath
               </span>
             )}
-          </div>
+          </NavLink>
 
           <SidebarGroup>
             <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider">
@@ -123,7 +134,7 @@ function AppSidebarContent() {
                         className="hover:bg-sidebar-accent/50 transition-colors duration-200"
                         activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                       >
-                        <item.icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                        <item.icon className="mr-2 h-4 w-4 shrink-0" />
                         {!collapsed && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -137,7 +148,7 @@ function AppSidebarContent() {
         <div className="p-3 border-t border-sidebar-border">
           <div className="flex items-center justify-center gap-2">
             <Avatar
-              className="h-8 w-8 flex-shrink-0 cursor-pointer"
+              className="h-8 w-8 shrink-0 cursor-pointer"
               onClick={() => navigate("/profile")}
             >
               <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-xs font-medium">
