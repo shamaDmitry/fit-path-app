@@ -230,6 +230,7 @@ const TrainerProfile = () => {
                     >
                       <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                       <span>{format(parseISO(slot.date), "EEE, MMM d")}</span>
+
                       <span className="text-muted-foreground">
                         {slot.start_time} – {slot.end_time}
                       </span>

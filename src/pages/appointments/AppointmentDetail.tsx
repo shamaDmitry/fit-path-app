@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, NavLink } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   cancelAppointment,
@@ -113,11 +113,7 @@ const AppointmentDetail = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Button
-        variant="ghost"
-        className="text-muted-foreground"
-        onClick={() => navigate(-1)}
-      >
+      <Button variant="secondary" onClick={() => navigate(-1)}>
         <ArrowLeft className="w-4 h-4 mr-2" /> Back
       </Button>
 
@@ -178,7 +174,11 @@ const AppointmentDetail = () => {
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <User className="w-3 h-3" /> Client
                 </p>
-                <p className="text-sm font-medium">{appointment.user_name}</p>
+
+                <p className="text-sm font-medium">
+                  {/* <NavLink to={`/users/${appointment.user_id}`}> */}
+                  <NavLink to="#">{appointment.user_name}</NavLink>
+                </p>
               </div>
 
               <div className="space-y-1">
@@ -255,12 +255,7 @@ const AppointmentDetail = () => {
               )}
 
               {canComplete && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-success border-success/20 hover:bg-success/10"
-                  onClick={handleComplete}
-                >
+                <Button size="sm" variant="success" onClick={handleComplete}>
                   <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Complete
                 </Button>
               )}
@@ -268,8 +263,7 @@ const AppointmentDetail = () => {
               {canCancel && (
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                  variant="destructive"
                   onClick={() => setConfirmCancel(true)}
                 >
                   <XCircle className="w-4 h-4 mr-2" /> Cancel

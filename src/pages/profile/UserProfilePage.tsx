@@ -55,8 +55,8 @@ const UserProfilePage = () => {
         animate={{ opacity: 1, y: 0 }}
       >
         <Card className="glass border-border/50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-5">
+          <CardContent className="md:p-6">
+            <div className="flex flex-col items-center md:items-start gap-5">
               <Avatar className="h-20 w-20">
                 <AvatarFallback className="bg-primary/10 text-primary font-display font-bold text-2xl">
                   {initials}

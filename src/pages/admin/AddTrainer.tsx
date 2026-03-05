@@ -1,0 +1,299 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { useAppDispatch } from "@/store";
+import { addTrainer } from "@/store/slices/trainersSlice";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { ArrowLeft, Plus, X } from "lucide-react";
+import { trainerColors } from "@/data/mockData";
+
+const specialties = [
+  "Strength Training",
+  "Yoga & Pilates",
+  "HIIT & Athletics",
+  "Nutrition & Fitness",
+  "CrossFit",
+  "Dance & Cardio",
+];
+
+const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
+  key,
+  value,
+}));
+
+const AddTrainer = () => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [experience, setExperience] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
+  const [certInput, setCertInput] = useState("");
+  const [certifications, setCertifications] = useState<string[]>([]);
+
+  const addCertification = () => {
+    const trimmed = certInput.trim();
+
+    if (trimmed && !certifications.includes(trimmed)) {
+      setCertifications([...certifications, trimmed]);
+
+      setCertInput("");
+    }
+  };
+
+  const removeCertification = (cert: string) => {
+    setCertifications(certifications.filter((c) => c !== cert));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name || !specialty) {
+      toast.error("Name and specialty are required");
+
+      return;
+    }
+
+    dispatch(
+      addTrainer({
+        id: `t-${Date.now()}`,
+        full_name: name,
+        bio,
+        avatar_url: "",
+        specialty,
+        rating: 5.0,
+        experience_years: parseInt(experience) || 0,
+        color: selectedColor,
+        certifications,
+        phone: phone || undefined,
+        email: email || undefined,
+      }),
+    );
+
+    toast.success(`${name} added as trainer`);
+
+    navigate("/admin/trainers");
+  };
+
+  return (
+    <div className="max-w-lg mx-auto space-y-6">
+      <Button
+        variant="ghost"
+        className="text-muted-foreground"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back
+      </Button>
+
+      <Card className="glass border-border/50">
+        <CardHeader>
+          <CardTitle className="font-display">Add New Trainer</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Full Name *
+              </Label>
+
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
+                className="h-10 bg-muted/50 border-border/50"
+              />
+            </div>
+
+            {/* Specialty */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Specialty *
+              </Label>
+
+              <Select value={specialty} onValueChange={setSpecialty}>
+                <SelectTrigger className="h-10 bg-muted/50 border-border/50">
+                  <SelectValue placeholder="Select specialty" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {specialties.map((specialty) => {
+                    return (
+                      <SelectItem key={specialty} value={specialty}>
+                        {specialty}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Experience */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Years of Experience
+              </Label>
+
+              <Input
+                type="number"
+                value={experience}
+                onChange={(e) => setExperience(e.target.value)}
+                placeholder="5"
+                className="h-10 bg-muted/50 border-border/50"
+              />
+            </div>
+
+            {/* Contact Info */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Phone</Label>
+
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 555-0100"
+                  className="h-10 bg-muted/50 border-border/50"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Email</Label>
+
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="trainer@fitpath.com"
+                  className="h-10 bg-muted/50 border-border/50"
+                />
+              </div>
+            </div>
+
+            {/* Color Selector */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Trainer Color
+              </Label>
+
+              <div className="flex gap-2 flex-wrap">
+                {colorOptions.map((c) => {
+                  return (
+                    <button
+                      key={c.key}
+                      type="button"
+                      onClick={() => setSelectedColor(c.value)}
+                      className="w-8 h-8 rounded-full border-2 transition-all duration-200"
+                      style={{
+                        backgroundColor: `hsl(${c.value})`,
+                        borderColor:
+                          selectedColor === c.value
+                            ? `hsl(${c.value})`
+                            : "transparent",
+                        boxShadow:
+                          selectedColor === c.value
+                            ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(${c.value})`
+                            : "none",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">
+                Certifications
+              </Label>
+
+              <div className="flex gap-2">
+                <Input
+                  value={certInput}
+                  onChange={(e) => setCertInput(e.target.value)}
+                  placeholder="e.g. NASM-CPT"
+                  className="h-10 bg-muted/50 border-border/50"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCertification();
+                    }
+                  }}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={addCertification}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {certifications.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {certifications.map((cert) => (
+                    <Badge
+                      key={cert}
+                      variant="secondary"
+                      className="gap-1 pr-1"
+                    >
+                      {cert}
+                      <button
+                        type="button"
+                        onClick={() => removeCertification(cert)}
+                        className="ml-0.5 hover:text-destructive transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Bio */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Bio</Label>
+
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Brief description..."
+                className="bg-muted/50 border-border/50 min-h-25"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full gradient-primary text-primary-foreground h-10"
+            >
+              Add Trainer
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default AddTrainer;

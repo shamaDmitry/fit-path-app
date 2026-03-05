@@ -236,9 +236,12 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
                         })}
                         onClick={() => setSelectedSlotId(slot.id)}
                       >
-                        {slot.start_time} – {slot.end_time}
+                        <span className="font-medium">
+                          {slot.start_time} – {slot.end_time}
+                        </span>
+
                         {selectedSlotId === slot.id && (
-                          <Check className="w-3 h-3 ml-1" />
+                          <Check className="w-3 h-3 ml-1 absolute right-3 top-1/2 -translate-y-1/2" />
                         )}
                       </Button>
                     ))}

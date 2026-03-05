@@ -101,11 +101,12 @@ const Login = () => {
         <Card className="glass border-border/50">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg font-display">Welcome back</CardTitle>
+
             <CardDescription>Choose a role to explore the demo</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {roleConfig.map((role, index) => {
                 return (
                   <motion.button

@@ -42,13 +42,13 @@ const AppointmentCard = ({
     >
       {/* Trainer color bar */}
       <div
-        className="w-1 h-12 rounded-full flex-shrink-0"
+        className="w-1 h-12 rounded-full shrink-0"
         style={{ backgroundColor: `hsl(${trainerColor})` }}
       />
 
       {/* Date block */}
       <div
-        className="flex-shrink-0 w-14 h-14 rounded-lg flex flex-col items-center justify-center"
+        className="shrink-0 w-14 h-14 rounded-lg flex flex-col items-center justify-center"
         style={{
           backgroundColor: `hsl(${trainerColor} / 0.1)`,
         }}
@@ -69,15 +69,19 @@ const AppointmentCard = ({
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-2">
           {showTrainer && (
             <p className="text-sm font-medium text-foreground truncate">
               {appointment.trainer_name}
             </p>
           )}
+
           {showUser && (
             <p className="text-sm font-medium text-foreground truncate flex items-center gap-1">
-              <User className="w-3 h-3" />
+              <div className="bg-primary p-1 rounded-full text-primary-foreground">
+                <User className="w-3 h-3" />
+              </div>
+
               {appointment.user_name}
             </p>
           )}

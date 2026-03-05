@@ -90,108 +90,110 @@ function AppSidebarContent() {
       .join("") || "?";
 
   return (
-    <Sidebar collapsible="icon" className="border-r-0">
-      <SidebarContent className="flex flex-col justify-between">
-        <div>
-          <NavLink
-            to="/"
-            className={cn("p-4 flex items-center gap-2", {
-              "justify-center": collapsed,
-            })}
-          >
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
-              <Dumbbell className="w-4 h-4 text-primary-foreground" />
-            </div>
-
-            {!collapsed && (
-              <span className="font-display font-bold text-sidebar-foreground text-lg">
-                FitPath
-              </span>
-            )}
-          </NavLink>
-
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider">
-              {user?.role === "admin"
-                ? "Administration"
-                : user?.role === "trainer"
-                  ? "Trainer Panel"
-                  : "Navigation"}
-            </SidebarGroupLabel>
-
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        end={
-                          item.url === "/dashboard" ||
-                          item.url === "/trainer" ||
-                          item.url === "/admin"
-                        }
-                        className="hover:bg-sidebar-accent/50 transition-colors duration-200"
-                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                      >
-                        <item.icon className="mr-2 h-4 w-4 shrink-0" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </div>
-
-        <div className="p-3 border-t border-sidebar-border">
-          <div className="flex items-center justify-center gap-2">
-            <Avatar
-              className="h-8 w-8 shrink-0 cursor-pointer"
-              onClick={() => navigate("/profile")}
+    <div className="[&_[data-slot=sidebar-container]]:bg-red-500! [&_[data-slot=sidebar-gap]]:h-96">
+      <Sidebar collapsible="icon" className="border-r-0">
+        <SidebarContent className="flex flex-col justify-between">
+          <div className="">
+            <NavLink
+              to="/"
+              className={cn("p-4 flex items-center gap-2", {
+                "justify-center": collapsed,
+              })}
             >
-              <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-xs font-medium">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-
-            {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-sidebar-foreground truncate">
-                  {user?.full_name}
-                </p>
-
-                <p className="text-[10px] text-sidebar-foreground/50 capitalize">
-                  {user?.role}
-                </p>
+              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+                <Dumbbell className="w-4 h-4 text-primary-foreground" />
               </div>
-            )}
 
-            {!collapsed && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                onClick={() => setShowLogoutConfirm(true)}
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </Button>
-            )}
+              {!collapsed && (
+                <span className="font-display font-bold text-sidebar-foreground text-lg">
+                  FitPath
+                </span>
+              )}
+            </NavLink>
+
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider">
+                {user?.role === "admin"
+                  ? "Administration"
+                  : user?.role === "trainer"
+                    ? "Trainer Panel"
+                    : "Navigation"}
+              </SidebarGroupLabel>
+
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink
+                          to={item.url}
+                          end={
+                            item.url === "/dashboard" ||
+                            item.url === "/trainer" ||
+                            item.url === "/admin"
+                          }
+                          className="hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
+                          activeClassName="bg-primary text-primary-foreground font-medium"
+                        >
+                          <item.icon className="mr-2 h-4 w-4 shrink-0" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </div>
-        </div>
 
-        <ConfirmDialog
-          open={showLogoutConfirm}
-          onOpenChange={setShowLogoutConfirm}
-          title="Log out?"
-          description="Are you sure you want to log out of your account?"
-          confirmLabel="Log out"
-          variant="destructive"
-          onConfirm={handleLogout}
-        />
-      </SidebarContent>
-    </Sidebar>
+          <div className="p-3 border-t border-sidebar-border">
+            <div className="flex items-center justify-center gap-2">
+              <Avatar
+                className="h-8 w-8 shrink-0 cursor-pointer"
+                onClick={() => navigate("/profile")}
+              >
+                <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-xs font-medium">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+
+              {!collapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-sidebar-foreground truncate">
+                    {user?.full_name}
+                  </p>
+
+                  <p className="text-[10px] text-sidebar-foreground/50 capitalize">
+                    {user?.role}
+                  </p>
+                </div>
+              )}
+
+              {!collapsed && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                  onClick={() => setShowLogoutConfirm(true)}
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <ConfirmDialog
+            open={showLogoutConfirm}
+            onOpenChange={setShowLogoutConfirm}
+            title="Log out?"
+            description="Are you sure you want to log out of your account?"
+            confirmLabel="Log out"
+            variant="destructive"
+            onConfirm={handleLogout}
+          />
+        </SidebarContent>
+      </Sidebar>
+    </div>
   );
 }
 
@@ -204,10 +206,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebarContent />
+
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center border-b border-border/50 px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-            <SidebarTrigger className="mr-4" />
+            <SidebarTrigger className="size-10 hover:bg-primary" />
           </header>
+
           <main className="flex-1 p-6">
             <motion.div
               initial={{ opacity: 0, y: 8 }}

@@ -35,10 +35,13 @@ const ConfirmDialog = ({
       <AlertDialogContent className="glass border-border/50">
         <AlertDialogHeader>
           <AlertDialogTitle className="font-display">{title}</AlertDialogTitle>
+
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
+
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+
           <AlertDialogAction
             onClick={onConfirm}
             className={

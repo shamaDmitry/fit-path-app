@@ -13,6 +13,13 @@ import UserProfilePage from "@/pages/profile/UserProfilePage";
 import FindTrainers from "@/pages/user/FindTrainers";
 import UserBookings from "@/pages/user/UserBookings";
 import TrainerProfile from "@/pages/trainers/TrainerProfile";
+import TrainerDashboard from "@/pages/trainer/TrainerDashboard";
+import TrainerAppointments from "@/pages/trainer/TrainerAppointments";
+import TrainerTimeslots from "@/pages/trainer/TrainerTimeslots";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminTrainers from "@/pages/admin/AdminTrainers";
+import AdminAppointments from "@/pages/admin/AdminAppointments";
+import AddTrainer from "@/pages/admin/AddTrainer";
 
 function ProtectedRoute({
   children,
@@ -81,6 +88,32 @@ function AppRoutes() {
         }
       />
 
+      {/* Trainer routes */}
+      <Route
+        path="/trainer"
+        element={
+          <ProtectedRoute allowedRoles={["trainer"]}>
+            <TrainerDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trainer/appointments"
+        element={
+          <ProtectedRoute allowedRoles={["trainer"]}>
+            <TrainerAppointments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trainer/timeslots"
+        element={
+          <ProtectedRoute allowedRoles={["trainer"]}>
+            <TrainerTimeslots />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Shared detail routes */}
       <Route
         path="/trainers/:id"
@@ -103,6 +136,40 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <UserProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/trainers"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminTrainers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/appointments"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminAppointments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/add-trainer"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AddTrainer />
           </ProtectedRoute>
         }
       />
