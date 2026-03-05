@@ -16,14 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import {
-  ArrowLeft,
-  Check,
-  CheckCheck,
-  CheckCircle2,
-  Plus,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, Plus, X } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 
