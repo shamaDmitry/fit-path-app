@@ -21,7 +21,6 @@ const AdminDashboard = () => {
 
   const appointments = useAppSelector((s) => s.appointments.appointments);
   const trainers = useAppSelector((s) => s.trainers.trainers);
-  const timeslots = useAppSelector((s) => s.timeslots.timeslots);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
@@ -33,8 +32,6 @@ const AdminDashboard = () => {
   const totalRevenue = appointments
     .filter((a) => a.paid && a.price)
     .reduce((sum, a) => sum + (a.price || 0), 0);
-
-  const openSlots = timeslots.filter((ts) => !ts.is_booked).length;
 
   const recentAppointments = [...appointments]
     .sort(

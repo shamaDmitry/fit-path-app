@@ -16,8 +16,16 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  CheckCheck,
+  CheckCircle2,
+  Plus,
+  X,
+} from "lucide-react";
 import { trainerColors } from "@/data/mockData";
+import { cn } from "@/lib/utils";
 
 const specialties = [
   "Strength Training",
@@ -90,6 +98,8 @@ const AddTrainer = () => {
 
     navigate("/admin/trainers");
   };
+
+  console.log("selectedColor", selectedColor);
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
@@ -194,25 +204,31 @@ const AddTrainer = () => {
               </Label>
 
               <div className="flex gap-2 flex-wrap">
-                {colorOptions.map((c) => {
+                {colorOptions.map((color) => {
+                  console.log("color", color);
+
                   return (
-                    <button
-                      key={c.key}
+                    <Button
+                      size={"icon"}
+                      key={color.key}
                       type="button"
-                      onClick={() => setSelectedColor(c.value)}
-                      className="w-8 h-8 rounded-full border-2 transition-all duration-200"
+                      onClick={() => setSelectedColor(color.value)}
+                      className={cn(
+                        "w-8 h-8 rounded-full border-3 transition-all duration-200",
+                      )}
                       style={{
-                        backgroundColor: `hsl(${c.value})`,
-                        borderColor:
-                          selectedColor === c.value
-                            ? `hsl(${c.value})`
-                            : "transparent",
+                        backgroundColor: `hsl(${color.value})`,
+                        borderColor: `hsl(${color.value})`,
                         boxShadow:
-                          selectedColor === c.value
-                            ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(${c.value})`
+                          selectedColor === color.value
+                            ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(${color.value})`
                             : "none",
                       }}
-                    />
+                    >
+                      {selectedColor === color.value && (
+                        <Check className="size-5 font-bold" />
+                      )}
+                    </Button>
                   );
                 })}
               </div>

@@ -54,11 +54,12 @@ const AppointmentCard = ({
         }}
       >
         <span
-          className="text-[10px] uppercase font-medium"
+          className="text-sm uppercase font-medium"
           style={{ color: `hsl(${trainerColor})` }}
         >
           {format(start, "MMM")}
         </span>
+
         <span
           className="text-lg font-display font-bold leading-tight"
           style={{ color: `hsl(${trainerColor})` }}
@@ -71,47 +72,51 @@ const AppointmentCard = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
           {showTrainer && (
-            <p className="text-sm font-medium text-foreground truncate">
+            <p className="text-base font-medium text-foreground truncate">
               {appointment.trainer_name}
             </p>
           )}
 
           {showUser && (
-            <p className="text-sm font-medium text-foreground truncate flex items-center gap-1">
+            <div className="text-base font-semibold text-foreground truncate flex items-center gap-1">
               <div className="bg-primary p-1 rounded-full text-primary-foreground">
                 <User className="w-3 h-3" />
               </div>
 
               {appointment.user_name}
-            </p>
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+
+        <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {format(start, "HH:mm")} – {format(end, "HH:mm")}
           </span>
+
           <Badge
             variant="outline"
-            className={`text-[10px] capitalize border ${statusStyles[appointment.status]}`}
+            className={`text-sm capitalize border ${statusStyles[appointment.status]}`}
           >
             {appointment.status}
           </Badge>
+
           {appointment.price && (
-            <span className="flex items-center gap-0.5">
+            <span className="flex text-base text-foreground font-medium items-center gap-0.5">
               <DollarSign className="w-3 h-3" />
               {appointment.price}
+
               {appointment.paid ? (
                 <Badge
                   variant="outline"
-                  className="text-[9px] ml-1 bg-success/10 text-success border-success/20"
+                  className="text-sm ml-1 bg-success/10 text-success border-success/20"
                 >
                   Paid
                 </Badge>
               ) : (
                 <Badge
                   variant="outline"
-                  className="text-[9px] ml-1 bg-warning/10 text-warning border-warning/20"
+                  className="text-sm ml-1 bg-warning/10 text-warning border-warning/20"
                 >
                   Unpaid
                 </Badge>
