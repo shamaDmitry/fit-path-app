@@ -39,7 +39,7 @@ const UserProfilePage = () => {
     .reduce((sum, appointment) => sum + (appointment.price || 0), 0);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-lg mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
           My Profile

@@ -264,16 +264,17 @@ const AddTrainer = () => {
                     <Badge
                       key={cert}
                       variant="secondary"
-                      className="gap-1 pr-1"
+                      className="gap-1 pr-1 text-sm"
                     >
                       {cert}
-                      <button
-                        type="button"
+                      <Button
+                        variant={"destructive"}
+                        size={"icon-xs"}
                         onClick={() => removeCertification(cert)}
-                        className="ml-0.5 hover:text-destructive transition-colors"
+                        className="ml-0.5 transition-colors"
                       >
                         <X className="h-3 w-3" />
-                      </button>
+                      </Button>
                     </Badge>
                   ))}
                 </div>

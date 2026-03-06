@@ -54,7 +54,7 @@ export const trainerColors: Record<string, string> = {
   t3: "210 80% 52%", // blue
   t4: "30 90% 55%", // orange
   t5: "340 65% 50%", // rose
-  t6: "45 85% 50%", // amber
+  t6: "45 85% 40%", // amber
 };
 
 export const mockTrainers: Trainer[] = [

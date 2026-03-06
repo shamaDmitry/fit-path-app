@@ -102,17 +102,20 @@ const FindTrainers = () => {
         </div>
 
         <Select value={specialty} onValueChange={setSpecialty}>
-          <SelectTrigger className="w-full sm:w-48 h-10 bg-muted/50 border-border/50">
+          <SelectTrigger className="w-full sm:w-48 h-10 bg-muted/50 border-border/50 items-start justify-start">
             <SlidersHorizontal className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-            <SelectValue />
+
+            <SelectValue className="flex-1" />
           </SelectTrigger>
 
           <SelectContent>
-            {specialties.map((specialty) => (
-              <SelectItem key={specialty} value={specialty}>
-                {specialty}
-              </SelectItem>
-            ))}
+            {specialties.map((specialty) => {
+              return (
+                <SelectItem key={specialty} value={specialty}>
+                  {specialty}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
 

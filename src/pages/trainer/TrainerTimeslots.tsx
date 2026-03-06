@@ -69,7 +69,7 @@ const TrainerTimeslots = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
           Manage Timeslots
@@ -103,6 +103,7 @@ const TrainerTimeslots = () => {
                 className="h-10 bg-muted/50 border-border/50"
               />
             </div>
+
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3 h-3" /> Start
@@ -115,6 +116,7 @@ const TrainerTimeslots = () => {
                 className="h-10 bg-muted/50 border-border/50"
               />
             </div>
+
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3 h-3" /> End
@@ -127,6 +129,7 @@ const TrainerTimeslots = () => {
                 className="h-10 bg-muted/50 border-border/50"
               />
             </div>
+
             <div className="flex items-end">
               <Button
                 className="gradient-primary text-primary-foreground h-10"

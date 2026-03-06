@@ -51,7 +51,7 @@ const TrainerCard = ({ trainer, onBook, delay = 0 }: TrainerCardProps) => {
 
         <div className="flex-1 min-w-0">
           <h3
-            className="font-display font-semibold text-foreground truncate cursor-pointer hover:underline"
+            className="font-display text-lg font-semibold text-foreground truncate cursor-pointer hover:underline"
             onClick={() => navigate(`/trainers/${trainer.id}`)}
           >
             {trainer.full_name}
@@ -59,9 +59,9 @@ const TrainerCard = ({ trainer, onBook, delay = 0 }: TrainerCardProps) => {
 
           <Badge
             variant="secondary"
-            className="mt-1 text-[10px] font-medium"
+            className="mt-1 text-xs font-medium"
             style={{
-              backgroundColor: `hsl(${color} / 0.1)`,
+              backgroundColor: `hsl(${color} / 0.2)`,
               color: `hsl(${color})`,
             }}
           >
@@ -91,7 +91,7 @@ const TrainerCard = ({ trainer, onBook, delay = 0 }: TrainerCardProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 text-xs"
+          className="flex-1"
           onClick={() => navigate(`/trainers/${trainer.id}`)}
         >
           <Eye className="w-3 h-3 mr-1" />
