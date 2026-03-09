@@ -9,7 +9,6 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
-import { supabase } from "@/lib/supabase";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -58,8 +57,6 @@ const UserDashboard = () => {
 
     setCancelId(null);
   };
-
-  console.log("supabase", supabase);
 
   return (
     <section className="mx-auto space-y-8">

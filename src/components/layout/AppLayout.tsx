@@ -29,7 +29,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { NavLink } from "@/components/NavLink";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { logout } from "@/store/slices/authSlice";
+import { signOut } from "@/store/slices/authSlice";
 import { cn } from "@/lib/utils";
 import { useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -83,8 +83,8 @@ function AppSidebarContent() {
         ? trainerNav
         : userNav;
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(signOut());
 
     navigate("/login");
   };

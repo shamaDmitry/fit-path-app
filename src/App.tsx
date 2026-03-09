@@ -1,9 +1,15 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Provider } from "react-redux";
-import { store, useAppSelector } from "@/store";
+import { store, useAppDispatch, useAppSelector } from "@/store";
+import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { setSession, fetchProfile, setLoading } from "@/store/slices/authSlice";
 
 import AppLayout from "@/components/layout/AppLayout";
 import UserDashboard from "@/pages/user/UserDashboard";
@@ -20,6 +26,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrainers from "@/pages/admin/AdminTrainers";
 import AdminAppointments from "@/pages/admin/AdminAppointments";
 import AddTrainer from "@/pages/admin/AddTrainer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function ProtectedRoute({
   children,
@@ -28,29 +35,75 @@ function ProtectedRoute({
   children: React.ReactNode;
   allowedRoles?: string[];
 }) {
-  const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+  const { isAuthenticated, user, isLoading } = useAppSelector((s) => s.auth);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Skeleton className="w-[300px] h-[200px] rounded-xl" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <AppLayout>{children}</AppLayout>;
 }
 
 function AppRoutes() {
-  const { isAuthenticated, user } = useAppSelector((s) => s.auth);
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user, isLoading } = useAppSelector((s) => s.auth);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        dispatch(setSession({ session, user: null }));
+        dispatch(fetchProfile(session.user.id));
+      } else {
+        dispatch(setLoading(false));
+      }
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (session) {
+          dispatch(setSession({ session, user: null }));
+          dispatch(fetchProfile(session.user.id));
+        } else {
+          dispatch(setSession({ session: null, user: null }));
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [dispatch]);
 
   const homeRedirect = () => {
     if (!isAuthenticated) return "/login";
-
     if (user?.role === "admin") return "/admin";
-
     if (user?.role === "trainer") return "/trainer";
-
     return "/dashboard";
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <Skeleton className="w-12 h-12 rounded-full mx-auto" />
+          <Skeleton className="w-48 h-4 mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -60,6 +113,23 @@ function AppRoutes() {
           isAuthenticated ? <Navigate to={homeRedirect()} replace /> : <Login />
         }
       />
+      <Route
+        path="/signup"
+        element={
+          isAuthenticated ? <Navigate to={homeRedirect()} replace /> : <Signup />
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          isAuthenticated ? <Navigate to={homeRedirect()} replace /> : <ForgotPassword />
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
+      />
+      
       <Route path="/" element={<Navigate to={homeRedirect()} replace />} />
 
       {/* User routes */}
@@ -185,7 +255,6 @@ function App() {
       <TooltipProvider>
         <BrowserRouter>
           <Toaster />
-
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>

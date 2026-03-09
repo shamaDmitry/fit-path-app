@@ -1,16 +1,37 @@
-import { useAppSelector } from "@/store";
+import { useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, Calendar, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Mail, Phone, Calendar, Shield, Lock, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { getUserInitials } from "@/lib/utils";
+import { updatePassword, deleteAccount } from "@/store/slices/authSlice";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
+import { toast } from "sonner";
 
 const UserProfilePage = () => {
+  const dispatch = useAppDispatch();
+
   const user = useAppSelector((s) => s.auth.user);
 
+  const { isLoading } = useAppSelector((s) => s.auth);
+
   const appointments = useAppSelector((s) => s.appointments.appointments);
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!user) return null;
 
@@ -30,123 +51,237 @@ const UserProfilePage = () => {
     (appointment) => appointment.status === "completed",
   ).length;
 
-  // const cancelled = myAppointments.filter(
-  //   (appointment) => appointment.status === "cancelled",
-  // ).length;
-
   const totalSpent = myAppointments
     .filter((appointment) => appointment.paid && appointment.price)
     .reduce((sum, appointment) => sum + (appointment.price || 0), 0);
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    await dispatch(updatePassword(newPassword));
+
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleDeleteAccount = async () => {
+    await dispatch(deleteAccount());
+  };
+
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
           My Profile
         </h1>
-
         <p className="text-sm text-muted-foreground mt-1">
-          Manage your account
+          Manage your account and settings
         </p>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Card className="glass border-border/50">
-          <CardContent className="md:p-6">
-            <div className="flex flex-col items-center md:items-start gap-5">
-              <Avatar className="h-20 w-20">
-                <AvatarFallback className="bg-primary/10 text-primary font-display font-bold text-2xl">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-1 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="glass border-border/50">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center gap-5">
+                  <Avatar className="h-24 w-24">
+                    <AvatarFallback className="bg-primary/10 text-primary font-display font-bold text-3xl">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
 
-              <div className="flex-1">
-                <h2 className="text-xl font-display font-bold text-foreground">
-                  {user.full_name}
-                </h2>
-
-                <Badge variant="secondary" className="mt-1 capitalize text-xs">
-                  <Shield className="w-3 h-3 mr-1" />
-                  {user.role}
-                </Badge>
-
-                <div className="mt-4 space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="w-4 h-4" /> {user.email}
+                  <div className="text-center">
+                    <h2 className="text-xl font-display font-bold text-foreground">
+                      {user.full_name}
+                    </h2>
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 capitalize text-xs"
+                    >
+                      <Shield className="w-3 h-3 mr-1" />
+                      {user.role}
+                    </Badge>
                   </div>
 
-                  {user.phone && (
+                  <div className="w-full space-y-3 text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4" /> {user.phone}
+                      <Mail className="w-4 h-4" /> {user.email}
                     </div>
-                  )}
-
-                  {user.joined_at && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="w-4 h-4" /> Joined{" "}
-                      {format(new Date(user.joined_at), "MMMM yyyy")}
-                    </div>
-                  )}
+                    {user.phone && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="w-4 h-4" /> {user.phone}
+                      </div>
+                    )}
+                    {user.joined_at && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Calendar className="w-4 h-4" /> Joined{" "}
+                        {format(new Date(user.joined_at), "MMMM yyyy")}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card className="glass border-border/50">
-          <CardHeader>
-            <CardTitle className="font-display text-base">
-              Activity Summary
-            </CardTitle>
-          </CardHeader>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="glass border-border/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+                  Quick Stats
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 pt-2">
+                <div className="flex justify-between items-center p-2 rounded-lg bg-muted/30 border border-border/30">
+                  <span className="text-xs text-muted-foreground">
+                    Appointments
+                  </span>
+                  <span className="font-display font-bold">
+                    {myAppointments.length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 rounded-lg bg-info/5 border border-info/10">
+                  <span className="text-xs text-muted-foreground">
+                    Scheduled
+                  </span>
+                  <span className="font-display font-bold text-info">
+                    {scheduled}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 rounded-lg bg-success/5 border border-success/10">
+                  <span className="text-xs text-muted-foreground">
+                    Completed
+                  </span>
+                  <span className="font-display font-bold text-success">
+                    {completed}
+                  </span>
+                </div>
+                {user.role === "user" && (
+                  <div className="flex justify-between items-center p-2 rounded-lg bg-warning/5 border border-warning/10">
+                    <span className="text-xs text-muted-foreground">
+                      Invested
+                    </span>
+                    <span className="font-display font-bold text-warning">
+                      ${totalSpent}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
 
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="text-center p-3 rounded-lg bg-muted/50">
-                <p className="text-2xl font-display font-bold text-foreground">
-                  {myAppointments.length}
-                </p>
+        <div className="md:col-span-2 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="glass border-border/50">
+              <CardHeader>
+                <CardTitle className="font-display text-lg flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-primary" />
+                  Security Settings
+                </CardTitle>
+                <CardDescription>
+                  Update your password to keep your account secure
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="bg-muted/50 border-border/50"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword">
+                        Confirm New Password
+                      </Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="bg-muted/50 border-border/50"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    className="gradient-primary text-primary-foreground"
+                    disabled={isLoading || !newPassword}
+                  >
+                    Change Password
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="glass border-red-500/20 bg-red-500/5">
+              <CardHeader>
+                <CardTitle className="font-display text-lg text-red-500 flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  Danger Zone
+                </CardTitle>
+                <CardDescription>
+                  Permanently delete your account and all associated data
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={isLoading}
+                >
+                  Delete Account
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </div>
 
-              <div className="text-center p-3 rounded-lg bg-info/5">
-                <p className="text-2xl font-display font-bold text-info">
-                  {scheduled}
-                </p>
-
-                <p className="text-xs text-muted-foreground">Scheduled</p>
-              </div>
-
-              <div className="text-center p-3 rounded-lg bg-success/5">
-                <p className="text-2xl font-display font-bold text-success">
-                  {completed}
-                </p>
-
-                <p className="text-xs text-muted-foreground">Completed</p>
-              </div>
-
-              <div className="text-center p-3 rounded-lg bg-warning/5">
-                <p className="text-2xl font-display font-bold text-warning">
-                  ${totalSpent}
-                </p>
-
-                <p className="text-xs text-muted-foreground">Total Spent</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Permanently delete account?"
+        description="This action cannot be undone. All your bookings and personal information will be permanently removed from our servers."
+        confirmLabel="Delete my account"
+        variant="destructive"
+        onConfirm={handleDeleteAccount}
+      />
     </div>
   );
 };
