@@ -40,7 +40,7 @@ function ProtectedRoute({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Skeleton className="w-[300px] h-[200px] rounded-xl" />
+        <Skeleton className="w-75 h-50 rounded-xl" />
       </div>
     );
   }
@@ -56,13 +56,18 @@ function ProtectedRoute({
 
 function AppRoutes() {
   const dispatch = useAppDispatch();
+
   const { isAuthenticated, user, isLoading } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session) {
         dispatch(setSession({ session, user: null }));
+
         dispatch(fetchProfile(session.user.id));
       } else {
         dispatch(setLoading(false));
@@ -71,16 +76,17 @@ function AppRoutes() {
 
     initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session) {
-          dispatch(setSession({ session, user: null }));
-          dispatch(fetchProfile(session.user.id));
-        } else {
-          dispatch(setSession({ session: null, user: null }));
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        dispatch(setSession({ session, user: null }));
+
+        dispatch(fetchProfile(session.user.id));
+      } else {
+        dispatch(setSession({ session: null, user: null }));
       }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -89,8 +95,11 @@ function AppRoutes() {
 
   const homeRedirect = () => {
     if (!isAuthenticated) return "/login";
+
     if (user?.role === "admin") return "/admin";
+
     if (user?.role === "trainer") return "/trainer";
+
     return "/dashboard";
   };
 
@@ -99,6 +108,7 @@ function AppRoutes() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="space-y-4 text-center">
           <Skeleton className="w-12 h-12 rounded-full mx-auto" />
+
           <Skeleton className="w-48 h-4 mx-auto" />
         </div>
       </div>
@@ -116,20 +126,25 @@ function AppRoutes() {
       <Route
         path="/signup"
         element={
-          isAuthenticated ? <Navigate to={homeRedirect()} replace /> : <Signup />
+          isAuthenticated ? (
+            <Navigate to={homeRedirect()} replace />
+          ) : (
+            <Signup />
+          )
         }
       />
       <Route
         path="/forgot-password"
         element={
-          isAuthenticated ? <Navigate to={homeRedirect()} replace /> : <ForgotPassword />
+          isAuthenticated ? (
+            <Navigate to={homeRedirect()} replace />
+          ) : (
+            <ForgotPassword />
+          )
         }
       />
-      <Route
-        path="/reset-password"
-        element={<ResetPassword />}
-      />
-      
+      <Route path="/reset-password" element={<ResetPassword />} />
+
       <Route path="/" element={<Navigate to={homeRedirect()} replace />} />
 
       {/* User routes */}

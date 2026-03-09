@@ -13,20 +13,26 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Github } from "lucide-react";
+import { Sparkles, Github, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
   const { isLoading } = useAppSelector((s) => s.auth);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("test@test.com");
+  const [password, setPassword] = useState("test1234");
+
+  const [showPass, setShowPass] = useState(false);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const result = await dispatch(signIn({ email, password }));
+
     if (signIn.fulfilled.match(result)) {
       const user = result.payload.user;
+
       if (user?.role === "admin") navigate("/admin");
       else if (user?.role === "trainer") navigate("/trainer");
       else navigate("/dashboard");
@@ -41,6 +47,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
+
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/5 blur-3xl" />
       </div>
 
@@ -60,10 +67,12 @@ const Login = () => {
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
+
             <span className="text-2xl font-display font-bold text-foreground">
               FitPath
             </span>
           </motion.div>
+
           <p className="text-muted-foreground text-sm">
             Sign in to manage your fitness journey
           </p>
@@ -71,7 +80,7 @@ const Login = () => {
 
         <Card className="glass border-border/50">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-display">Welcome back</CardTitle>
+            <CardTitle className="text-xl font-display">Welcome back</CardTitle>
 
             <CardDescription>Sign in to your account</CardDescription>
           </CardHeader>
@@ -157,16 +166,28 @@ const Login = () => {
                   </Link>
                 </div>
 
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-10 bg-muted/50 border-border/50"
-                  required
-                  disabled={isLoading}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPass ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-10 bg-muted/50 border-border/50"
+                    required
+                    disabled={isLoading}
+                  />
+
+                  <Button
+                    size={"icon-sm"}
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                    type="button"
+                    variant={"default"}
+                    onClick={() => setShowPass((prev) => !prev)}
+                  >
+                    {showPass ? <EyeOff /> : <Eye />}
+                  </Button>
+                </div>
               </div>
 
               <Button

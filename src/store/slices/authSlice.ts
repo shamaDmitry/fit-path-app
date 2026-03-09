@@ -35,11 +35,13 @@ export const fetchProfile = createAsyncThunk(
         .single();
 
       if (error) throw error;
+
       return data as User;
     } catch (error: unknown) {
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
+
       return rejectWithValue("An unknown error occurred");
     }
   },
@@ -75,9 +77,12 @@ export const signIn = createAsyncThunk(
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
+
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
@@ -111,13 +116,17 @@ export const signUp = createAsyncThunk(
       if (error) throw error;
 
       toast.success("Check your email for confirmation!");
+
       return data;
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
+
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
@@ -133,13 +142,17 @@ export const signInWithOAuth = createAsyncThunk(
           redirectTo: window.location.origin,
         },
       });
+
       if (error) throw error;
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
+
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
@@ -150,13 +163,17 @@ export const signOut = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { error } = await supabase.auth.signOut();
+
       if (error) throw error;
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
+
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
@@ -213,9 +230,12 @@ export const deleteAccount = createAsyncThunk(
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
+
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
