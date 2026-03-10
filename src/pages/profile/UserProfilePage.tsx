@@ -11,7 +11,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Phone, Calendar, Shield, Lock, Trash2 } from "lucide-react";
 import { format } from "date-fns";
@@ -19,6 +18,7 @@ import { getUserInitials } from "@/lib/utils";
 import { updatePassword, deleteAccount } from "@/store/slices/authSlice";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toast } from "sonner";
+import PasswordInput from "@/components/shared/PasswordInput";
 
 const UserProfilePage = () => {
   const dispatch = useAppDispatch();
@@ -60,6 +60,7 @@ const UserProfilePage = () => {
 
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
+
       return;
     }
 
@@ -74,18 +75,19 @@ const UserProfilePage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
           My Profile
         </h1>
+
         <p className="text-sm text-muted-foreground mt-1">
           Manage your account and settings
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -103,6 +105,7 @@ const UserProfilePage = () => {
                     <h2 className="text-xl font-display font-bold text-foreground">
                       {user.full_name}
                     </h2>
+
                     <Badge
                       variant="secondary"
                       className="mt-1 capitalize text-xs"
@@ -116,11 +119,13 @@ const UserProfilePage = () => {
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Mail className="w-4 h-4" /> {user.email}
                     </div>
+
                     {user.phone && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Phone className="w-4 h-4" /> {user.phone}
                       </div>
                     )}
+
                     {user.joined_at && (
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="w-4 h-4" /> Joined{" "}
@@ -184,7 +189,7 @@ const UserProfilePage = () => {
           </motion.div>
         </div>
 
-        <div className="md:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -196,42 +201,46 @@ const UserProfilePage = () => {
                   <Lock className="w-4 h-4 text-primary" />
                   Security Settings
                 </CardTitle>
+
                 <CardDescription>
                   Update your password to keep your account secure
                 </CardDescription>
               </CardHeader>
+
               <CardContent>
                 <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div className="space-y-1.5">
                       <Label htmlFor="newPassword">New Password</Label>
-                      <Input
+
+                      <PasswordInput
                         id="newPassword"
-                        type="password"
-                        placeholder="••••••••"
                         value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="bg-muted/50 border-border/50"
+                        setPassword={setNewPassword}
+                        isLoading={isLoading}
+                        placeholder="Enter new password"
                         required
                         disabled={isLoading}
                       />
                     </div>
+
                     <div className="space-y-1.5">
                       <Label htmlFor="confirmPassword">
                         Confirm New Password
                       </Label>
-                      <Input
+
+                      <PasswordInput
                         id="confirmPassword"
-                        type="password"
-                        placeholder="••••••••"
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="bg-muted/50 border-border/50"
+                        setPassword={setConfirmPassword}
+                        isLoading={isLoading}
+                        placeholder="Confirm new password"
                         required
                         disabled={isLoading}
                       />
                     </div>
                   </div>
+
                   <Button
                     type="submit"
                     className="gradient-primary text-primary-foreground"

@@ -203,7 +203,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <SidebarTrigger className="size-10 hover:bg-primary" />
           </header>
 
-          <main className="flex-1 p-6">
+          <main className="flex-1 py-6 px-4">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}

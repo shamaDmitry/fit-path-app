@@ -14,6 +14,8 @@ const trainersSlice = createSlice({
   initialState,
   reducers: {
     addTrainer(state, action) {
+      console.log({ state, action });
+
       state.trainers.push(action.payload);
     },
 

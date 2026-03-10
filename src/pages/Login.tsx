@@ -13,17 +13,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Github, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Github } from "lucide-react";
+import PasswordInput from "@/components/shared/PasswordInput";
 
 const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const { isLoading } = useAppSelector((s) => s.auth);
-  const [email, setEmail] = useState("test@test.com");
-  const [password, setPassword] = useState("test1234");
-
-  const [showPass, setShowPass] = useState(false);
+  const [email, setEmail] = useState("admin@fitpath.com");
+  const [password, setPassword] = useState("AdminPassword123!");
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,28 +165,12 @@ const Login = () => {
                   </Link>
                 </div>
 
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPass ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-10 bg-muted/50 border-border/50"
-                    required
-                    disabled={isLoading}
-                  />
-
-                  <Button
-                    size={"icon-sm"}
-                    className="absolute right-1 top-1/2 -translate-y-1/2"
-                    type="button"
-                    variant={"default"}
-                    onClick={() => setShowPass((prev) => !prev)}
-                  >
-                    {showPass ? <EyeOff /> : <Eye />}
-                  </Button>
-                </div>
+                <PasswordInput
+                  id="password"
+                  value={password}
+                  setPassword={setPassword}
+                  isLoading={isLoading}
+                />
               </div>
 
               <Button

@@ -92,8 +92,6 @@ const AddTrainer = () => {
     navigate("/admin/trainers");
   };
 
-  console.log("selectedColor", selectedColor);
-
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <Button
@@ -126,42 +124,44 @@ const AddTrainer = () => {
               />
             </div>
 
-            {/* Specialty */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Specialty *
-              </Label>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Specialty */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  Specialty *
+                </Label>
 
-              <Select value={specialty} onValueChange={setSpecialty}>
-                <SelectTrigger className="h-10 bg-muted/50 border-border/50">
-                  <SelectValue placeholder="Select specialty" />
-                </SelectTrigger>
+                <Select value={specialty} onValueChange={setSpecialty}>
+                  <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
+                    <SelectValue placeholder="Select specialty" />
+                  </SelectTrigger>
 
-                <SelectContent>
-                  {specialties.map((specialty) => {
-                    return (
-                      <SelectItem key={specialty} value={specialty}>
-                        {specialty}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
+                  <SelectContent>
+                    {specialties.map((specialty) => {
+                      return (
+                        <SelectItem key={specialty} value={specialty}>
+                          {specialty}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Experience */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Years of Experience
-              </Label>
+              {/* Experience */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  Years of Experience
+                </Label>
 
-              <Input
-                type="number"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-                placeholder="5"
-                className="h-10 bg-muted/50 border-border/50"
-              />
+                <Input
+                  type="number"
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  placeholder="5"
+                  className="h-10 bg-muted/50 border-border/50"
+                />
+              </div>
             </div>
 
             {/* Contact Info */}
@@ -198,8 +198,6 @@ const AddTrainer = () => {
 
               <div className="flex gap-2 flex-wrap">
                 {colorOptions.map((color) => {
-                  console.log("color", color);
-
                   return (
                     <Button
                       size={"icon"}
@@ -271,7 +269,7 @@ const AddTrainer = () => {
                         variant={"destructive"}
                         size={"icon-xs"}
                         onClick={() => removeCertification(cert)}
-                        className="ml-0.5 transition-colors"
+                        className="ml-0.5 transition-colors rounded-2xl"
                       >
                         <X className="h-3 w-3" />
                       </Button>

@@ -204,14 +204,18 @@ export const updatePassword = createAsyncThunk(
   async (password: string, { rejectWithValue }) => {
     try {
       const { error } = await supabase.auth.updateUser({ password });
+
       if (error) throw error;
+
       toast.success("Password updated successfully!");
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
@@ -293,6 +297,8 @@ const authSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
+        console.log("fetchProfile", { state, action });
+
         state.user = action.payload;
         state.isLoading = false;
       })
