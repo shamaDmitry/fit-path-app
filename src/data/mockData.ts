@@ -10,6 +10,7 @@ export interface Trainer {
   certifications?: string[];
   phone?: string;
   email?: string;
+  is_active?: boolean;
 }
 
 export interface Timeslot {

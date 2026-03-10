@@ -3,17 +3,27 @@ import { trainerColors, type Trainer } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, Clock, Eye } from "lucide-react";
+import { Star, Clock, Eye, Edit2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { getUserInitials } from "@/lib/utils";
 
 interface TrainerCardProps {
   trainer: Trainer;
   onBook?: (trainer: Trainer) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  isAdmin?: boolean;
   delay?: number;
 }
 
-const TrainerCard = ({ trainer, onBook, delay = 0 }: TrainerCardProps) => {
+const TrainerCard = ({ 
+  trainer, 
+  onBook, 
+  onEdit, 
+  onDelete, 
+  isAdmin = false, 
+  delay = 0 
+}: TrainerCardProps) => {
   const navigate = useNavigate();
 
   const initials = getUserInitials(trainer.full_name);
@@ -88,24 +98,49 @@ const TrainerCard = ({ trainer, onBook, delay = 0 }: TrainerCardProps) => {
       </div>
 
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => navigate(`/trainers/${trainer.id}`)}
-        >
-          <Eye className="w-3 h-3 mr-1" />
-          Profile
-        </Button>
+        {isAdmin ? (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onEdit?.(trainer.id)}
+            >
+              <Edit2 className="w-3 h-3 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="flex-1"
+              onClick={() => onDelete?.(trainer.id)}
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Delete
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => navigate(`/trainers/${trainer.id}`)}
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              Profile
+            </Button>
 
-        {onBook && (
-          <Button
-            size="sm"
-            onClick={() => onBook(trainer)}
-            className="flex-1 gradient-primary text-primary-foreground text-xs"
-          >
-            Book Session
-          </Button>
+            {onBook && (
+              <Button
+                size="sm"
+                onClick={() => onBook(trainer)}
+                className="flex-1 gradient-primary text-primary-foreground text-xs"
+              >
+                Book Session
+              </Button>
+            )}
+          </>
         )}
       </div>
     </motion.div>

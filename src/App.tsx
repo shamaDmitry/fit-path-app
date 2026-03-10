@@ -26,6 +26,7 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminTrainers from "@/pages/admin/AdminTrainers";
 import AdminAppointments from "@/pages/admin/AdminAppointments";
 import AddTrainer from "@/pages/admin/AddTrainer";
+import EditTrainer from "@/pages/admin/EditTrainer";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function ProtectedRoute({
@@ -255,6 +256,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["admin"]}>
             <AddTrainer />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/edit-trainer/:id"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <EditTrainer />
           </ProtectedRoute>
         }
       />

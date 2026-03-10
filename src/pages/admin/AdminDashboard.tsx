@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import { cancelAppointment } from "@/store/slices/appointmentsSlice";
 import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
+import { fetchTrainers } from "@/store/slices/trainersSlice";
 import StatCard from "@/components/dashboard/StatCard";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -20,9 +21,13 @@ const AdminDashboard = () => {
   const dispatch = useAppDispatch();
 
   const appointments = useAppSelector((s) => s.appointments.appointments);
-  const trainers = useAppSelector((s) => s.trainers.trainers);
+  const { trainers } = useAppSelector((s) => s.trainers);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
+
+  useEffect(() => {
+    dispatch(fetchTrainers());
+  }, [dispatch]);
 
   const scheduled = appointments.filter((a) => a.status === "scheduled").length;
   const completed = appointments.filter((a) => a.status === "completed").length;

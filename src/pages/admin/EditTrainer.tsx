@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { useAppDispatch } from "@/store";
-import { createTrainer } from "@/store/slices/trainersSlice";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { updateTrainer, fetchTrainers } from "@/store/slices/trainersSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +19,6 @@ import { toast } from "sonner";
 import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
 
 const specialties = [
   "Strength Training",
@@ -35,9 +34,13 @@ const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
   value,
 }));
 
-const AddTrainer = () => {
+const EditTrainer = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  
+  const { trainers, loading: storeLoading } = useAppSelector((s) => s.trainers);
+  const trainer = trainers.find((t) => t.id === id);
 
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -46,17 +49,33 @@ const AddTrainer = () => {
   const [experience, setExperience] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
   const [certInput, setCertInput] = useState("");
   const [certifications, setCertifications] = useState<string[]>([]);
 
+  useEffect(() => {
+    if (trainers.length === 0) {
+      dispatch(fetchTrainers());
+    }
+  }, [dispatch, trainers.length]);
+
+  useEffect(() => {
+    if (trainer) {
+      setName(trainer.full_name || "");
+      setBio(trainer.bio || "");
+      setSpecialty(trainer.specialty || "");
+      setExperience(trainer.experience_years?.toString() || "0");
+      setPhone(trainer.phone || "");
+      setEmail(trainer.email || "");
+      setSelectedColor(trainer.color || colorOptions[0].value);
+      setCertifications(trainer.certifications || []);
+    }
+  }, [trainer]);
+
   const addCertification = () => {
     const trimmed = certInput.trim();
-
     if (trimmed && !certifications.includes(trimmed)) {
       setCertifications([...certifications, trimmed]);
-
       setCertInput("");
     }
   };
@@ -68,42 +87,21 @@ const AddTrainer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !specialty || !email || !password) {
-      toast.error("Name, specialty, email and password are required");
+    if (!id) return;
 
+    if (!name || !specialty) {
+      toast.error("Name and specialty are required");
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Sign up the trainer (this will trigger profile creation via DB trigger)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            role: "trainer",
-            phone: phone,
-          },
-        },
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create user");
-
-      // 2. The DB trigger should have created the profile and the trainer record.
-      // However, we might want to update the trainer record with the extra fields (bio, specialty, etc.)
-      // since the trigger only sets basic info.
-      
       await dispatch(
-        createTrainer({
-          id: authData.user.id,
+        updateTrainer({
+          id,
           full_name: name,
           bio,
-          avatar_url: "",
           specialty,
-          rating: 5.0,
           experience_years: parseInt(experience) || 0,
           color: selectedColor,
           certifications,
@@ -112,14 +110,31 @@ const AddTrainer = () => {
         })
       ).unwrap();
 
-      toast.success(`${name} added as trainer. Note: You might have been signed out.`);
+      toast.success(`${name} updated successfully`);
       navigate("/admin/trainers");
     } catch (error: any) {
-      toast.error(error.message || "Failed to add trainer");
+      toast.error(error.message || "Failed to update trainer");
     } finally {
       setLoading(false);
     }
   };
+
+  if (storeLoading && trainers.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!trainer && !storeLoading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground mb-4">Trainer not found</p>
+        <Button onClick={() => navigate("/admin/trainers")}>Back to Trainers</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
@@ -134,7 +149,7 @@ const AddTrainer = () => {
 
       <Card className="glass border-border/50">
         <CardHeader>
-          <CardTitle className="font-display">Add New Trainer</CardTitle>
+          <CardTitle className="font-display">Edit Trainer: {trainer?.full_name}</CardTitle>
         </CardHeader>
 
         <CardContent>
@@ -154,33 +169,18 @@ const AddTrainer = () => {
               />
             </div>
 
-            {/* Email & Password */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Email *</Label>
-
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="trainer@fitpath.com"
-                  className="h-10 bg-muted/50 border-border/50"
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Password *</Label>
-
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-10 bg-muted/50 border-border/50"
-                  disabled={loading}
-                />
-              </div>
+            {/* Email (Read Only usually, or editable) */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Email</Label>
+              <Input
+                type="email"
+                value={email}
+                className="h-10 bg-muted/20 border-border/30 text-muted-foreground cursor-not-allowed"
+                disabled={true}
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Email cannot be changed here as it is linked to the auth account.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -196,13 +196,11 @@ const AddTrainer = () => {
                   </SelectTrigger>
 
                   <SelectContent>
-                    {specialties.map((specialty) => {
-                      return (
-                        <SelectItem key={specialty} value={specialty}>
-                          {specialty}
-                        </SelectItem>
-                      );
-                    })}
+                    {specialties.map((spec) => (
+                      <SelectItem key={spec} value={spec}>
+                        {spec}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -351,10 +349,10 @@ const AddTrainer = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Trainer...
+                  Updating...
                 </>
               ) : (
-                "Add Trainer"
+                "Save Changes"
               )}
             </Button>
           </form>
@@ -364,4 +362,4 @@ const AddTrainer = () => {
   );
 };
 
-export default AddTrainer;
+export default EditTrainer;

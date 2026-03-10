@@ -1,8 +1,7 @@
-import { useState, useMemo } from "react";
-import { useAppSelector } from "@/store";
-
+import { useState, useMemo, useEffect } from "react";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { fetchTrainers } from "@/store/slices/trainersSlice";
 import BookingDialog from "@/components/booking/BookingDialog";
-
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -11,8 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import type { Trainer } from "@/data/mockData";
 import TrainerCard from "@/components/trainers/TrainerCard";
 
@@ -33,13 +31,18 @@ const sortOptions = [
 ];
 
 const FindTrainers = () => {
-  const trainers = useAppSelector((store) => store.trainers.trainers);
+  const { trainers, loading } = useAppSelector((store) => store.trainers);
+  const dispatch = useAppDispatch();
 
   const [search, setSearch] = useState("");
   const [specialty, setSpecialty] = useState("All");
   const [sortBy, setSortBy] = useState("rating");
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchTrainers());
+  }, [dispatch]);
 
   const filtered = useMemo(() => {
     let result = [...trainers];
@@ -75,6 +78,14 @@ const FindTrainers = () => {
 
     setBookingOpen(true);
   };
+
+  if (loading && trainers.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
