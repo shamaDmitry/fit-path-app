@@ -24,8 +24,23 @@ export const fetchTrainers = createAsyncThunk(
       .order("full_name");
 
     if (error) return rejectWithValue(error.message);
+
     return data as Trainer[];
-  }
+  },
+);
+
+export const fetchAdminTrainers = createAsyncThunk(
+  "trainers/fetchAdminTrainers",
+  async (_, { rejectWithValue }) => {
+    const { data, error } = await supabase
+      .from("trainers")
+      .select("*")
+      .order("full_name");
+
+    if (error) return rejectWithValue(error.message);
+
+    return data as Trainer[];
+  },
 );
 
 export const createTrainer = createAsyncThunk(
@@ -39,7 +54,7 @@ export const createTrainer = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
     return data as Trainer;
-  }
+  },
 );
 
 export const updateTrainer = createAsyncThunk(
@@ -54,7 +69,7 @@ export const updateTrainer = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
     return data as Trainer;
-  }
+  },
 );
 
 export const softDeleteTrainer = createAsyncThunk(
@@ -66,8 +81,9 @@ export const softDeleteTrainer = createAsyncThunk(
       .eq("id", id);
 
     if (error) return rejectWithValue(error.message);
+
     return id;
-  }
+  },
 );
 
 const trainersSlice = createSlice({
@@ -95,7 +111,9 @@ const trainersSlice = createSlice({
       })
       // Update Trainer
       .addCase(updateTrainer.fulfilled, (state, action) => {
-        const index = state.trainers.findIndex((t) => t.id === action.payload.id);
+        const index = state.trainers.findIndex(
+          (t) => t.id === action.payload.id,
+        );
         if (index !== -1) {
           state.trainers[index] = action.payload;
         }

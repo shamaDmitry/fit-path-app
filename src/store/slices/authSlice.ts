@@ -92,15 +92,11 @@ interface SignUpPayload {
   email: string;
   password: string;
   fullName: string;
-  role: "user" | "trainer";
 }
 
 export const signUp = createAsyncThunk(
   "auth/signUp",
-  async (
-    { email, password, fullName, role }: SignUpPayload,
-    { rejectWithValue },
-  ) => {
+  async ({ email, password, fullName }: SignUpPayload, { rejectWithValue }) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -108,7 +104,7 @@ export const signUp = createAsyncThunk(
         options: {
           data: {
             full_name: fullName,
-            role: role || "user",
+            role: "user",
           },
         },
       });
@@ -297,8 +293,6 @@ const authSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
-        console.log("fetchProfile", { state, action });
-
         state.user = action.payload;
         state.isLoading = false;
       })

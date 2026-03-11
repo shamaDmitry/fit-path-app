@@ -13,13 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 
 const Signup = () => {
@@ -33,12 +27,10 @@ const Signup = () => {
   const [fullName, setFullName] = useState("Test User");
   const [showPass, setShowPass] = useState(false);
 
-  const [role, setRole] = useState<"user" | "trainer">("user");
-
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = await dispatch(signUp({ email, password, fullName, role }));
+    const result = await dispatch(signUp({ email, password, fullName }));
 
     if (signUp.fulfilled.match(result)) {
       navigate("/login");
@@ -128,31 +120,6 @@ const Signup = () => {
                   required
                   disabled={isLoading}
                 />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="role" className="text-sm text-muted-foreground">
-                  I am a...
-                </Label>
-
-                <Select
-                  value={role}
-                  onValueChange={(v: "user" | "trainer") => setRole(v)}
-                >
-                  <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectItem value="user">
-                      User (looking for training)
-                    </SelectItem>
-
-                    <SelectItem value="trainer">
-                      Trainer (offering training)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               <div className="space-y-1.5">

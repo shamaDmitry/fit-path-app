@@ -36,7 +36,9 @@ const ConfirmDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle className="font-display">{title}</AlertDialogTitle>
 
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogDescription
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
         </AlertDialogHeader>
 
         <AlertDialogFooter>

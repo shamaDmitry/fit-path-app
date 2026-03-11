@@ -34,7 +34,8 @@ import { cn } from "@/lib/utils";
 import { useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FooterMenuDesktop from "@/components/user/FooterMenuDesktop";
-import FooterMenuMob from "../user/FooterMenuMob";
+import FooterMenuMob from "@/components/user/FooterMenuMob";
+import { Spinner } from "@/components/ui/spinner";
 
 const userNav = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -116,46 +117,52 @@ function AppSidebarContent() {
             )}
           </NavLink>
 
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider">
-              {user?.role === "admin"
-                ? "Administration"
-                : user?.role === "trainer"
-                  ? "Trainer Panel"
-                  : "Navigation"}
-            </SidebarGroupLabel>
+          {!user ? (
+            <div className="flex items-center justify-center">
+              <Spinner />
+            </div>
+          ) : (
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-wider">
+                {user?.role === "admin"
+                  ? "Administration"
+                  : user?.role === "trainer"
+                    ? "Trainer Panel"
+                    : "Navigation"}
+              </SidebarGroupLabel>
 
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navItems.map((item) => {
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to={item.url}
-                          end={
-                            item.url === "/dashboard" ||
-                            item.url === "/trainer" ||
-                            item.url === "/admin"
-                          }
-                          className="hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
-                          activeClassName="bg-primary text-primary-foreground font-medium"
-                        >
-                          <item.icon className="mr-2 h-4 w-4 shrink-0" />
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navItems.map((item) => {
+                    return (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            end={
+                              item.url === "/dashboard" ||
+                              item.url === "/trainer" ||
+                              item.url === "/admin"
+                            }
+                            className="hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
+                            activeClassName="bg-primary text-primary-foreground font-medium"
+                          >
+                            <item.icon className="mr-2 h-4 w-4 shrink-0" />
 
-                          {!collapsed && <span>{item.title}</span>}
+                            {!collapsed && <span>{item.title}</span>}
 
-                          {isMobileView && collapsed && (
-                            <span>{item.title}</span>
-                          )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                            {isMobileView && collapsed && (
+                              <span>{item.title}</span>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
         </div>
 
         {user && (

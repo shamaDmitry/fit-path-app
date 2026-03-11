@@ -182,6 +182,35 @@ const Login = () => {
               </Button>
             </form>
 
+            <div className="flex items-center gap-4 justify-center">
+              <Button
+                onClick={() => {
+                  setEmail("admin@fitpath.com");
+                  setPassword("AdminPassword123!");
+                }}
+              >
+                As Admin
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setEmail("marcus@fitpath.com");
+                  setPassword("TrainerPassword123!");
+                }}
+              >
+                As Trainer
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setEmail("alex@fitpath.com");
+                  setPassword("UserPassword123!");
+                }}
+              >
+                As User
+              </Button>
+            </div>
+
             <div className="text-center text-sm text-muted-foreground pt-2">
               Don't have an account?{" "}
               <Link
