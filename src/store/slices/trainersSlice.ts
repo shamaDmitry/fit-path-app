@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { type Trainer } from "@/data/mockData";
 import { supabase } from "@/lib/supabase";
 
@@ -37,9 +37,27 @@ export const fetchAdminTrainers = createAsyncThunk(
       .select("*")
       .order("full_name");
 
+    console.log("data", data);
+
     if (error) return rejectWithValue(error.message);
 
     return data as Trainer[];
+  },
+);
+
+export const handleTest = createAsyncThunk(
+  "trainers/handleTest",
+  async (_, { rejectWithValue }) => {
+    const { data, error } = await supabase.functions.invoke("hello", {
+      body: {
+        name: "FitPath",
+      },
+    });
+
+    console.log("data", data);
+
+    if (error) return rejectWithValue(error.message);
+    return data;
   },
 );
 
@@ -53,6 +71,7 @@ export const createTrainer = createAsyncThunk(
       .single();
 
     if (error) return rejectWithValue(error.message);
+
     return data as Trainer;
   },
 );
@@ -102,6 +121,19 @@ const trainersSlice = createSlice({
         state.trainers = action.payload;
       })
       .addCase(fetchTrainers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Fetch Admin Trainers
+      .addCase(fetchAdminTrainers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdminTrainers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.trainers = action.payload;
+      })
+      .addCase(fetchAdminTrainers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

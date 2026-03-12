@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   fetchAdminTrainers,
+  handleTest,
   softDeleteTrainer,
 } from "@/store/slices/trainersSlice";
 import TrainerCard from "@/components/trainers/TrainerCard";
@@ -41,11 +42,15 @@ const AdminTrainers = () => {
 
   if (loading && trainers.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
+
+  const test = async () => {
+    dispatch(handleTest());
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -59,6 +64,13 @@ const AdminTrainers = () => {
             Manage your trainer roster
           </p>
         </div>
+
+        <Button
+          className="gradient-primary text-primary-foreground"
+          onClick={() => test()}
+        >
+          Test Function
+        </Button>
 
         <Button
           className="gradient-primary text-primary-foreground"

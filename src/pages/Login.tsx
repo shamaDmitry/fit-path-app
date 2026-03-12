@@ -194,15 +194,6 @@ const Login = () => {
 
               <Button
                 onClick={() => {
-                  setEmail("marcus@fitpath.com");
-                  setPassword("TrainerPassword123!");
-                }}
-              >
-                As Trainer
-              </Button>
-
-              <Button
-                onClick={() => {
                   setEmail("alex@fitpath.com");
                   setPassword("UserPassword123!");
                 }}

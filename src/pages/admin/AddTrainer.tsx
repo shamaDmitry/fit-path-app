@@ -75,8 +75,8 @@ const AddTrainer = () => {
     }
 
     setLoading(true);
+
     try {
-      // 1. Sign up the trainer (this will trigger profile creation via DB trigger)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -90,12 +90,9 @@ const AddTrainer = () => {
       });
 
       if (authError) throw authError;
+
       if (!authData.user) throw new Error("Failed to create user");
 
-      // 2. The DB trigger should have created the profile and the trainer record.
-      // However, we might want to update the trainer record with the extra fields (bio, specialty, etc.)
-      // since the trigger only sets basic info.
-      
       await dispatch(
         createTrainer({
           id: authData.user.id,
@@ -109,13 +106,18 @@ const AddTrainer = () => {
           certifications,
           phone: phone || undefined,
           email: email || undefined,
-        })
+        }),
       ).unwrap();
 
-      toast.success(`${name} added as trainer. Note: You might have been signed out.`);
+      toast.success(
+        `${name} added as trainer. Note: You might have been signed out.`,
+      );
+
       navigate("/admin/trainers");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add trainer");
+    } catch (error: unknown) {
+      toast.error(
+        (error as { message?: string })?.message || "Failed to add trainer",
+      );
     } finally {
       setLoading(false);
     }
@@ -170,7 +172,9 @@ const AddTrainer = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Password *</Label>
+                <Label className="text-xs text-muted-foreground">
+                  Password *
+                </Label>
 
                 <Input
                   type="password"
@@ -190,7 +194,11 @@ const AddTrainer = () => {
                   Specialty *
                 </Label>
 
-                <Select value={specialty} onValueChange={setSpecialty} disabled={loading}>
+                <Select
+                  value={specialty}
+                  onValueChange={setSpecialty}
+                  disabled={loading}
+                >
                   <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
