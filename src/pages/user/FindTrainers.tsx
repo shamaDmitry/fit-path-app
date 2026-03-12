@@ -88,7 +88,7 @@ const FindTrainers = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
           Find Your Trainer
