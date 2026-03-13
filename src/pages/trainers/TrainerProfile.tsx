@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router";
-import { useAppSelector } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { trainerColors } from "@/data/mockData";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,15 +17,20 @@ import {
 } from "lucide-react";
 
 import BookingDialog from "@/components/booking/BookingDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { getUserInitials } from "@/lib/utils";
+import { fetchTrainer } from "@/store/slices/trainersSlice";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TrainerProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const trainers = useAppSelector((store) => store.trainers.trainers);
+  const dispatch = useAppDispatch();
+  const { trainer, loading, error } = useAppSelector((s) => s.trainers);
+
+  // const trainers = useAppSelector((store) => store.trainers.trainers);
   const timeslots = useAppSelector((store) => store.timeslots.timeslots);
   const appointments = useAppSelector(
     (store) => store.appointments.appointments,
@@ -34,12 +39,32 @@ const TrainerProfile = () => {
 
   const [bookingOpen, setBookingOpen] = useState(false);
 
-  const trainer = trainers.find((t) => t.id === id);
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchTrainer(id));
+    }
+  }, [dispatch, id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Skeleton className="h-40 w-full rounded-xl" />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+
+        <Skeleton className="h-40 w-full rounded-xl" />
+      </div>
+    );
+  }
 
   if (!trainer) {
     return (
       <div className="max-w-4xl mx-auto text-center py-20">
-        <p className="text-muted-foreground">Trainer not found</p>
+        <p className="text-muted-foreground">{error}</p>
+
         <Button variant="outline" className="mt-4" onClick={() => navigate(-1)}>
           Go Back
         </Button>

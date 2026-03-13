@@ -112,8 +112,10 @@ const EditTrainer = () => {
 
       toast.success(`${name} updated successfully`);
       navigate("/admin/trainers");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update trainer");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update trainer"
+      );
     } finally {
       setLoading(false);
     }

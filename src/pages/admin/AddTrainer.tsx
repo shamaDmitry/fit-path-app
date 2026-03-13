@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useAppDispatch } from "@/store";
-import { createTrainer } from "@/store/slices/trainersSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +18,7 @@ import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import PasswordInput from "@/components/shared/PasswordInput";
 
 const specialties = [
   "Strength Training",
@@ -37,16 +36,15 @@ const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
 
 const AddTrainer = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState("Test trainer");
   const [bio, setBio] = useState("");
-  const [specialty, setSpecialty] = useState("");
+  const [specialty, setSpecialty] = useState("Yoga & Pilates");
   const [experience, setExperience] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("trainer@test.com");
+  const [password, setPassword] = useState("test1234");
   const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
   const [certInput, setCertInput] = useState("");
   const [certifications, setCertifications] = useState<string[]>([]);
@@ -77,46 +75,29 @@ const AddTrainer = () => {
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            role: "trainer",
-            phone: phone,
-          },
+      // Call the Edge Function
+      const { error } = await supabase.functions.invoke("create-trainer", {
+        body: {
+          email,
+          password,
+          full_name: name,
+          bio,
+          specialty,
+          experience_years: experience,
+          phone,
+          color: selectedColor,
+          certifications,
         },
       });
 
-      if (authError) throw authError;
+      if (error) throw error;
 
-      if (!authData.user) throw new Error("Failed to create user");
-
-      await dispatch(
-        createTrainer({
-          id: authData.user.id,
-          full_name: name,
-          bio,
-          avatar_url: "",
-          specialty,
-          rating: 5.0,
-          experience_years: parseInt(experience) || 0,
-          color: selectedColor,
-          certifications,
-          phone: phone || undefined,
-          email: email || undefined,
-        }),
-      ).unwrap();
-
-      toast.success(
-        `${name} added as trainer. Note: You might have been signed out.`,
-      );
+      toast.success(`${name} added as trainer successfully.`);
 
       navigate("/admin/trainers");
     } catch (error: unknown) {
       toast.error(
-        (error as { message?: string })?.message || "Failed to add trainer",
+        error instanceof Error ? error.message : "Failed to add trainer",
       );
     } finally {
       setLoading(false);
@@ -175,6 +156,14 @@ const AddTrainer = () => {
                 <Label className="text-xs text-muted-foreground">
                   Password *
                 </Label>
+
+                <PasswordInput
+                  value={password}
+                  setPassword={(value) => setPassword(value)}
+                  placeholder="Enter new password"
+                  required
+                  disabled={loading}
+                />
 
                 <Input
                   type="password"

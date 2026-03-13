@@ -16,13 +16,13 @@ interface TrainerCardProps {
   delay?: number;
 }
 
-const TrainerCard = ({ 
-  trainer, 
-  onBook, 
-  onEdit, 
-  onDelete, 
-  isAdmin = false, 
-  delay = 0 
+const TrainerCard = ({
+  trainer,
+  onBook,
+  onEdit,
+  onDelete,
+  isAdmin = false,
+  delay = 0,
 }: TrainerCardProps) => {
   const navigate = useNavigate();
 

@@ -4,12 +4,14 @@ import { supabase } from "@/lib/supabase";
 
 interface TrainersState {
   trainers: Trainer[];
+  trainer: Trainer | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: TrainersState = {
   trainers: [],
+  trainer: null,
   loading: false,
   error: null,
 };
@@ -26,6 +28,25 @@ export const fetchTrainers = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
 
     return data as Trainer[];
+  },
+);
+
+export const fetchTrainer = createAsyncThunk(
+  "trainers/fetchTrainer",
+  async (id: string, { rejectWithValue }) => {
+    const { data, error } = await supabase
+      .from("trainers")
+      .select("*")
+      .eq("id", id)
+      .eq("is_active", true)
+      .select()
+      .single();
+
+    if (!data) return rejectWithValue("Trainer not found");
+
+    if (error) return rejectWithValue(error.message);
+
+    return data as Trainer;
   },
 );
 
@@ -50,13 +71,14 @@ export const handleTest = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     const { data, error } = await supabase.functions.invoke("hello", {
       body: {
-        name: "FitPath",
+        name: "FitPath 12121",
       },
     });
 
-    console.log("data", data);
+    if (error) {
+      return rejectWithValue(error.message);
+    }
 
-    if (error) return rejectWithValue(error.message);
     return data;
   },
 );
@@ -111,6 +133,19 @@ const trainersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // Fetch Trainer
+      .addCase(fetchTrainer.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrainer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.trainer = action.payload;
+      })
+      .addCase(fetchTrainer.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
       // Fetch Trainers
       .addCase(fetchTrainers.pending, (state) => {
         state.loading = true;

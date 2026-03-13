@@ -35,10 +35,23 @@ const AdminTrainers = () => {
         setRemoveId(null);
       } catch (error) {
         toast.error(error as string);
+
         toast.error("Failed to remove trainer");
       }
     }
   };
+
+  const test = async () => {
+    await dispatch(handleTest()).unwrap();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-100">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (loading && trainers.length === 0) {
     return (
@@ -47,10 +60,6 @@ const AdminTrainers = () => {
       </div>
     );
   }
-
-  const test = async () => {
-    dispatch(handleTest());
-  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -94,6 +103,8 @@ const AdminTrainers = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {trainers.map((trainer, i) => {
+            console.log("trainer", trainer);
+
             return (
               <TrainerCard
                 key={trainer.id}
