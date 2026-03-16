@@ -1,34 +1,38 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { type Trainer } from "@/data/mockData";
 import { supabase } from "@/lib/supabase";
 
+export interface Specialty {
+  id: string;
+  label: string;
+  value: string;
+}
+
 interface TrainersState {
   trainers: Trainer[];
-  trainer: Trainer | null;
+  specialties: Specialty[];
   loading: boolean;
   error: string | null;
 }
 
 const initialState: TrainersState = {
   trainers: [],
-  trainer: null,
+  specialties: [],
   loading: false,
   error: null,
 };
 
-export const fetchTrainers = createAsyncThunk(
-  "trainers/fetchTrainers",
+export const fetchSpecialties = createAsyncThunk(
+  "trainers/fetchSpecialties",
   async (_, { rejectWithValue }) => {
     const { data, error } = await supabase
-      .from("trainers")
+      .from("specialties")
       .select("*")
-      .eq("is_active", true)
-      .order("full_name");
+      .order("label");
 
     if (error) return rejectWithValue(error.message);
-
-    return data as Trainer[];
-  },
+    return data as Specialty[];
+  }
 );
 
 export const fetchTrainer = createAsyncThunk(
@@ -36,18 +40,43 @@ export const fetchTrainer = createAsyncThunk(
   async (id: string, { rejectWithValue }) => {
     const { data, error } = await supabase
       .from("trainers")
-      .select("*")
+      .select(`
+        *,
+        specialty:specialties(label)
+      `)
       .eq("id", id)
-      .eq("is_active", true)
-      .select()
       .single();
 
-    if (!data) return rejectWithValue("Trainer not found");
+    if (error) return rejectWithValue(error.message);
+    
+    return {
+      ...data,
+      specialty: data.specialty?.label || "Unassigned"
+    } as Trainer;
+  }
+);
+
+export const fetchTrainers = createAsyncThunk(
+  "trainers/fetchTrainers",
+  async (_, { rejectWithValue }) => {
+    const { data, error } = await supabase
+      .from("trainers")
+      .select(`
+        *,
+        specialty:specialties(label)
+      `)
+      .eq("is_active", true)
+      .order("full_name");
 
     if (error) return rejectWithValue(error.message);
+    
+    const flattenedData = data.map((trainer: any) => ({
+      ...trainer,
+      specialty: trainer.specialty?.label || "Unassigned"
+    }));
 
-    return data as Trainer;
-  },
+    return flattenedData as Trainer[];
+  }
 );
 
 export const fetchAdminTrainers = createAsyncThunk(
@@ -55,30 +84,22 @@ export const fetchAdminTrainers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     const { data, error } = await supabase
       .from("trainers")
-      .select("*")
-      .order("rating", { ascending: false });
+      .select(`
+        *,
+        specialty:specialties(label)
+      `)
+      .order("is_active", { ascending: false })
+      .order("full_name");
 
     if (error) return rejectWithValue(error.message);
+    
+    const flattenedData = data.map((trainer: any) => ({
+      ...trainer,
+      specialty: trainer.specialty?.label || "Unassigned"
+    }));
 
-    return data as Trainer[];
-  },
-);
-
-export const handleTest = createAsyncThunk(
-  "trainers/handleTest",
-  async (_, { rejectWithValue }) => {
-    const { data, error } = await supabase.functions.invoke("hello", {
-      body: {
-        name: "FitPath 12121",
-      },
-    });
-
-    if (error) {
-      return rejectWithValue(error.message);
-    }
-
-    return data;
-  },
+    return flattenedData as Trainer[];
+  }
 );
 
 export const createTrainer = createAsyncThunk(
@@ -87,28 +108,43 @@ export const createTrainer = createAsyncThunk(
     const { data, error } = await supabase
       .from("trainers")
       .insert([{ ...trainer, is_active: true }])
-      .select()
+      .select(`
+        *,
+        specialty:specialties(label)
+      `)
       .single();
 
     if (error) return rejectWithValue(error.message);
-
-    return data as Trainer;
-  },
+    
+    return {
+      ...data,
+      specialty: data.specialty?.label || "Unassigned"
+    } as Trainer;
+  }
 );
 
 export const updateTrainer = createAsyncThunk(
   "trainers/updateTrainer",
   async (trainer: Partial<Trainer> & { id: string }, { rejectWithValue }) => {
+    const { specialty: _specialty, ...updateData } = trainer;
+
     const { data, error } = await supabase
       .from("trainers")
-      .update(trainer)
+      .update(updateData)
       .eq("id", trainer.id)
-      .select()
+      .select(`
+        *,
+        specialty:specialties(label)
+      `)
       .single();
 
     if (error) return rejectWithValue(error.message);
-    return data as Trainer;
-  },
+    
+    return {
+      ...data,
+      specialty: data.specialty?.label || "Unassigned"
+    } as Trainer;
+  }
 );
 
 export const softDeleteTrainer = createAsyncThunk(
@@ -120,23 +156,30 @@ export const softDeleteTrainer = createAsyncThunk(
       .eq("id", id);
 
     if (error) return rejectWithValue(error.message);
-
     return id;
-  },
+  }
 );
 
 export const restoreTrainer = createAsyncThunk(
   "trainers/restoreTrainer",
   async (id: string, { rejectWithValue }) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("trainers")
       .update({ is_active: true })
-      .eq("id", id);
+      .eq("id", id)
+      .select(`
+        *,
+        specialty:specialties(label)
+      `)
+      .single();
 
     if (error) return rejectWithValue(error.message);
-
-    return id;
-  },
+    
+    return {
+      ...data,
+      specialty: data.specialty?.label || "Unassigned"
+    } as Trainer;
+  }
 );
 
 const trainersSlice = createSlice({
@@ -145,20 +188,26 @@ const trainersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Fetch Trainer
+      .addCase(fetchSpecialties.fulfilled, (state, action) => {
+        state.specialties = action.payload;
+      })
       .addCase(fetchTrainer.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchTrainer.fulfilled, (state, action) => {
         state.loading = false;
-        state.trainer = action.payload;
+        const index = state.trainers.findIndex((t) => t.id === action.payload.id);
+        if (index !== -1) {
+          state.trainers[index] = action.payload;
+        } else {
+          state.trainers.push(action.payload);
+        }
       })
       .addCase(fetchTrainer.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Fetch Trainers
       .addCase(fetchTrainers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -171,7 +220,6 @@ const trainersSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Fetch Admin Trainers
       .addCase(fetchAdminTrainers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -184,31 +232,25 @@ const trainersSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Create Trainer
       .addCase(createTrainer.fulfilled, (state, action) => {
         state.trainers.push(action.payload);
       })
-      // Update Trainer
       .addCase(updateTrainer.fulfilled, (state, action) => {
-        const index = state.trainers.findIndex(
-          (t) => t.id === action.payload.id,
-        );
+        const index = state.trainers.findIndex((t) => t.id === action.payload.id);
         if (index !== -1) {
           state.trainers[index] = action.payload;
         }
       })
-      // Soft Delete Trainer
       .addCase(softDeleteTrainer.fulfilled, (state, action) => {
-        const trainer = state.trainers.find((t) => t.id === action.payload);
-        if (trainer) {
-          trainer.is_active = false;
+        const index = state.trainers.findIndex((t) => t.id === action.payload);
+        if (index !== -1) {
+          state.trainers[index].is_active = false;
         }
       })
-      // Restore Trainer
       .addCase(restoreTrainer.fulfilled, (state, action) => {
-        const trainer = state.trainers.find((t) => t.id === action.payload);
-        if (trainer) {
-          trainer.is_active = true;
+        const index = state.trainers.findIndex((t) => t.id === action.payload.id);
+        if (index !== -1) {
+          state.trainers[index] = action.payload;
         }
       });
   },

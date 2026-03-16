@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { fetchTrainers } from "@/store/slices/trainersSlice";
+import { fetchTrainers, fetchSpecialties } from "@/store/slices/trainersSlice";
 import BookingDialog from "@/components/booking/BookingDialog";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,16 +14,6 @@ import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
 import type { Trainer } from "@/data/mockData";
 import TrainerCard from "@/components/trainers/TrainerCard";
 
-const specialties = [
-  "All",
-  "Strength Training",
-  "Yoga & Pilates",
-  "HIIT & Athletics",
-  "Nutrition & Fitness",
-  "CrossFit",
-  "Dance & Cardio",
-];
-
 const sortOptions = [
   { value: "rating", label: "Top Rated" },
   { value: "experience", label: "Most Experienced" },
@@ -31,7 +21,7 @@ const sortOptions = [
 ];
 
 const FindTrainers = () => {
-  const { trainers, loading } = useAppSelector((store) => store.trainers);
+  const { trainers, specialties, loading } = useAppSelector((store) => store.trainers);
   const dispatch = useAppDispatch();
 
   const [search, setSearch] = useState("");
@@ -42,7 +32,10 @@ const FindTrainers = () => {
 
   useEffect(() => {
     dispatch(fetchTrainers());
-  }, [dispatch]);
+    if (specialties.length === 0) {
+      dispatch(fetchSpecialties());
+    }
+  }, [dispatch, specialties.length]);
 
   const filtered = useMemo(() => {
     let result = [...trainers];
@@ -53,7 +46,7 @@ const FindTrainers = () => {
       result = result.filter(
         (t) =>
           t.full_name.toLowerCase().includes(q) ||
-          t.specialty.toLowerCase().includes(q) ||
+          t.specialty?.toLowerCase().includes(q) ||
           t.bio.toLowerCase().includes(q),
       );
     }
@@ -88,7 +81,7 @@ const FindTrainers = () => {
   }
 
   return (
-    <div className="mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
           Find Your Trainer
@@ -120,13 +113,12 @@ const FindTrainers = () => {
           </SelectTrigger>
 
           <SelectContent>
-            {specialties.map((specialty) => {
-              return (
-                <SelectItem key={specialty} value={specialty}>
-                  {specialty}
-                </SelectItem>
-              );
-            })}
+            <SelectItem value="All">All Specialties</SelectItem>
+            {specialties.map((spec) => (
+              <SelectItem key={spec.id} value={spec.label}>
+                {spec.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -146,10 +138,8 @@ const FindTrainers = () => {
       </div>
 
       {/* Results */}
-
-      <div className="text-sm text-muted-foreground">
-        <span className="font-bold text-base">{filtered.length}</span> trainer
-        {filtered.length !== 1 ? "s" : ""} found
+      <div className="text-xs text-muted-foreground">
+        {filtered.length} trainer{filtered.length !== 1 ? "s" : ""} found
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

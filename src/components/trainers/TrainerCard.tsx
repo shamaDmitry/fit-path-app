@@ -3,17 +3,9 @@ import { trainerColors, type Trainer } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Star,
-  Clock,
-  Eye,
-  Edit2,
-  Trash2,
-  ArchiveRestore,
-  OctagonX,
-} from "lucide-react";
+import { Star, Clock, Eye, Edit2, Trash2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router";
-import { cn, getUserInitials } from "@/lib/utils";
+import { getUserInitials, cn } from "@/lib/utils";
 
 interface TrainerCardProps {
   trainer: Trainer;
@@ -25,20 +17,22 @@ interface TrainerCardProps {
   delay?: number;
 }
 
-const TrainerCard = ({
-  trainer,
-  onBook,
-  onEdit,
-  onDelete,
+const TrainerCard = ({ 
+  trainer, 
+  onBook, 
+  onEdit, 
+  onDelete, 
   onRestore,
-  isAdmin = false,
-  delay = 0,
+  isAdmin = false, 
+  delay = 0 
 }: TrainerCardProps) => {
   const navigate = useNavigate();
 
   const initials = getUserInitials(trainer.full_name);
 
   const color = trainerColors[trainer.id] || "158 64% 32%";
+
+  const isInactive = trainer.is_active === false;
 
   return (
     <motion.div
@@ -47,27 +41,19 @@ const TrainerCard = ({
       transition={{ delay, duration: 0.4 }}
       className={cn(
         "glass glass-hover rounded-xl p-5 flex flex-col relative",
-        !trainer.is_active && "cursor-not-allowed",
+        isInactive && "opacity-70 grayscale-[0.5]"
       )}
     >
-      {isAdmin && !trainer.is_active && (
-        <>
-          <div className="cursor-not-allowed bg-secondary! size-full absolute z-50 left-0 top-0 opacity-50 flex items-center justify-center">
-            <OctagonX className="text-destructive size-10" />
-          </div>
-
-          <Button
-            className="absolute right-4 top-4 z-50"
-            onClick={() => onRestore?.(trainer.id)}
-          >
-            <ArchiveRestore /> Restore
-          </Button>
-        </>
+      {isInactive && (
+        <Badge variant="destructive" className="absolute top-2 right-2 text-[10px] h-5">
+          Inactive
+        </Badge>
       )}
 
+      {/* Color accent top */}
       <div
         className="h-1 -mx-5 -mt-5 rounded-t-xl mb-4"
-        style={{ backgroundColor: `hsl(${trainer.color})` }}
+        style={{ backgroundColor: `hsl(${color})` }}
       />
 
       <div className="flex items-start gap-4 mb-4">
@@ -132,22 +118,32 @@ const TrainerCard = ({
               size="sm"
               className="flex-1"
               onClick={() => onEdit?.(trainer.id)}
-              disabled={!trainer.is_active}
             >
               <Edit2 className="w-3 h-3 mr-1" />
               Edit
             </Button>
-
-            <Button
-              variant="destructive"
-              size="sm"
-              className="flex-1"
-              onClick={() => onDelete?.(trainer.id)}
-              disabled={!trainer.is_active}
-            >
-              <Trash2 className="w-3 h-3 mr-1" />
-              Delete
-            </Button>
+            
+            {isInactive ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 border-primary/50 text-primary hover:bg-primary/10"
+                onClick={() => onRestore?.(trainer.id)}
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Restore
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="flex-1"
+                onClick={() => onDelete?.(trainer.id)}
+              >
+                <Trash2 className="w-3 h-3 mr-1" />
+                Delete
+              </Button>
+            )}
           </>
         ) : (
           <>

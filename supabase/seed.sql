@@ -1,7 +1,17 @@
 -- Step 3: Seed Data (Corrected for Local Supabase)
 -- Initial Admin, Trainer, and User accounts.
 
--- 1. Create an Admin User
+-- 1. Create Specialties
+INSERT INTO public.specialties (label, value) VALUES
+('Strength Training', 'strength_training'),
+('Yoga & Pilates', 'yoga_pilates'),
+('HIIT & Athletics', 'hiit_athletics'),
+('Nutrition & Fitness', 'nutrition_fitness'),
+('CrossFit', 'crossfit'),
+('Dance & Cardio', 'dance_cardio')
+ON CONFLICT (value) DO UPDATE SET label = EXCLUDED.label;
+
+-- 2. Create an Admin User
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
@@ -17,7 +27,7 @@ VALUES (
   now(), now(), '', '', '', ''
 ) ON CONFLICT (id) DO NOTHING;
 
--- 2. Create Trainer Users
+-- 3. Create Trainer Users
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
@@ -43,7 +53,7 @@ VALUES
   now(), now(), '', '', '', ''
 ) ON CONFLICT (id) DO NOTHING;
 
--- 3. Create Regular Users
+-- 4. Create Regular Users
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
@@ -60,11 +70,11 @@ VALUES
   now(), now(), '', '', '', ''
 ) ON CONFLICT (id) DO NOTHING;
 
--- Update Trainer Details with Rich Data (Trigger should have already created base rows)
+-- 5. Update Trainer Details with Rich Data
 UPDATE public.trainers
 SET 
   bio = 'NASM certified personal trainer specializing in strength training and body transformation.',
-  specialty = 'Strength Training',
+  specialty_id = (SELECT id FROM public.specialties WHERE value = 'strength_training'),
   rating = 4.9,
   experience_years = 8,
   color = '158 64% 32%',
@@ -74,7 +84,7 @@ WHERE id = 'e79f6e16-09a2-4a73-8b77-3e6f98126742';
 UPDATE public.trainers
 SET 
   bio = 'Yoga and pilates instructor with a holistic approach to fitness.',
-  specialty = 'Yoga & Pilates',
+  specialty_id = (SELECT id FROM public.specialties WHERE value = 'yoga_pilates'),
   rating = 4.8,
   experience_years = 6,
   color = '280 60% 50%',

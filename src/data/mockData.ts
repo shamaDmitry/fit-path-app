@@ -3,7 +3,8 @@ export interface Trainer {
   full_name: string;
   bio: string;
   avatar_url: string;
-  specialty: string;
+  specialty_id?: string;
+  specialty?: string; // We'll use this for the joined specialty label
   rating: number;
   experience_years: number;
   color: string;

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { createTrainer, fetchSpecialties } from "@/store/slices/trainersSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,18 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
-import { cn, getEdgeFunctionErrorMessage } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
-import PasswordInput from "@/components/shared/PasswordInput";
-
-const specialties = [
-  "Strength Training",
-  "Yoga & Pilates",
-  "HIIT & Athletics",
-  "Nutrition & Fitness",
-  "CrossFit",
-  "Dance & Cardio",
-];
 
 const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
   key,
@@ -36,18 +28,26 @@ const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
 
 const AddTrainer = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { specialties } = useAppSelector((s) => s.trainers);
 
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("Test trainer");
+  const [name, setName] = useState("");
   const [bio, setBio] = useState("");
-  const [specialty, setSpecialty] = useState("Yoga & Pilates");
+  const [specialtyId, setSpecialtyId] = useState("");
   const [experience, setExperience] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("trainer@test.com");
-  const [password, setPassword] = useState("test1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
   const [certInput, setCertInput] = useState("");
   const [certifications, setCertifications] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (specialties.length === 0) {
+      dispatch(fetchSpecialties());
+    }
+  }, [dispatch, specialties.length]);
 
   const addCertification = () => {
     const trimmed = certInput.trim();
@@ -66,54 +66,51 @@ const AddTrainer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !specialty || !email || !password || !experience || !bio) {
-      toast.error(
-        "Name, specialty, email, password, experience, and bio are required",
-      );
+    if (!name || !specialtyId || !email || !password) {
+      toast.error("Name, specialty, email and password are required");
 
       return;
     }
 
     setLoading(true);
-
     try {
-      // Call the Edge Function
-      const { error, response, data } = await supabase.functions.invoke(
-        "create-trainer",
-        {
-          body: {
-            email,
-            password,
+      // 1. Sign up the trainer
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
             full_name: name,
-            bio,
-            specialty,
-            experience_years: experience,
-            phone,
-            color: selectedColor,
-            certifications,
+            role: "trainer",
+            phone: phone,
           },
         },
-      );
+      });
 
-      if (error || (response && !response.ok)) {
-        const errorMessage = await getEdgeFunctionErrorMessage(
-          error,
-          data,
-          response,
-        );
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Failed to create user");
 
-        toast.error(errorMessage);
+      // 2. Update the trainer record with the extra fields
+      await dispatch(
+        createTrainer({
+          id: authData.user.id,
+          full_name: name,
+          bio,
+          avatar_url: "",
+          specialty_id: specialtyId,
+          rating: 5.0,
+          experience_years: parseInt(experience) || 0,
+          color: selectedColor,
+          certifications,
+          phone: phone || undefined,
+          email: email || undefined,
+        })
+      ).unwrap();
 
-        return;
-      }
-
-      toast.success(`${name} added as trainer successfully.`);
-
+      toast.success(`${name} added as trainer`);
       navigate("/admin/trainers");
-    } catch (error: unknown) {
-      const errorMessage = await getEdgeFunctionErrorMessage(error, null, null);
-
-      toast.error(errorMessage);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add trainer");
     } finally {
       setLoading(false);
     }
@@ -140,7 +137,7 @@ const AddTrainer = () => {
             {/* Name */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                Full Name <span className="text-destructive">*</span>
+                Full Name *
               </Label>
 
               <Input
@@ -155,9 +152,7 @@ const AddTrainer = () => {
             {/* Email & Password */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  Email <span className="text-destructive">*</span>
-                </Label>
+                <Label className="text-xs text-muted-foreground">Email *</Label>
 
                 <Input
                   type="email"
@@ -170,15 +165,14 @@ const AddTrainer = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  Password <span className="text-destructive">*</span>
-                </Label>
+                <Label className="text-xs text-muted-foreground">Password *</Label>
 
-                <PasswordInput
+                <Input
+                  type="password"
                   value={password}
-                  setPassword={(value) => setPassword(value)}
-                  placeholder="Enter new password"
-                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="h-10 bg-muted/50 border-border/50"
                   disabled={loading}
                 />
               </div>
@@ -188,14 +182,10 @@ const AddTrainer = () => {
               {/* Specialty */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Specialty <span className="text-destructive">*</span>
+                  Specialty *
                 </Label>
 
-                <Select
-                  value={specialty}
-                  onValueChange={setSpecialty}
-                  disabled={loading}
-                >
+                <Select value={specialtyId} onValueChange={setSpecialtyId} disabled={loading}>
                   <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
@@ -203,8 +193,8 @@ const AddTrainer = () => {
                   <SelectContent>
                     {specialties.map((specialty) => {
                       return (
-                        <SelectItem key={specialty} value={specialty}>
-                          {specialty}
+                        <SelectItem key={specialty.id} value={specialty.id}>
+                          {specialty.label}
                         </SelectItem>
                       );
                     })}
@@ -215,8 +205,7 @@ const AddTrainer = () => {
               {/* Experience */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Years of Experience{" "}
-                  <span className="text-destructive">*</span>
+                  Years of Experience
                 </Label>
 
                 <Input
