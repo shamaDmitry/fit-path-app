@@ -146,8 +146,10 @@ const FindTrainers = () => {
       </div>
 
       {/* Results */}
-      <div className="text-xs text-muted-foreground">
-        {filtered.length} trainer{filtered.length !== 1 ? "s" : ""} found
+
+      <div className="text-sm text-muted-foreground">
+        <span className="font-bold text-base">{filtered.length}</span> trainer
+        {filtered.length !== 1 ? "s" : ""} found
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

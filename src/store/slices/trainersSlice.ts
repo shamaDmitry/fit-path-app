@@ -56,9 +56,7 @@ export const fetchAdminTrainers = createAsyncThunk(
     const { data, error } = await supabase
       .from("trainers")
       .select("*")
-      .order("full_name");
-
-    console.log("data", data);
+      .order("rating", { ascending: false });
 
     if (error) return rejectWithValue(error.message);
 
@@ -127,6 +125,20 @@ export const softDeleteTrainer = createAsyncThunk(
   },
 );
 
+export const restoreTrainer = createAsyncThunk(
+  "trainers/restoreTrainer",
+  async (id: string, { rejectWithValue }) => {
+    const { error } = await supabase
+      .from("trainers")
+      .update({ is_active: true })
+      .eq("id", id);
+
+    if (error) return rejectWithValue(error.message);
+
+    return id;
+  },
+);
+
 const trainersSlice = createSlice({
   name: "trainers",
   initialState,
@@ -187,7 +199,17 @@ const trainersSlice = createSlice({
       })
       // Soft Delete Trainer
       .addCase(softDeleteTrainer.fulfilled, (state, action) => {
-        state.trainers = state.trainers.filter((t) => t.id !== action.payload);
+        const trainer = state.trainers.find((t) => t.id === action.payload);
+        if (trainer) {
+          trainer.is_active = false;
+        }
+      })
+      // Restore Trainer
+      .addCase(restoreTrainer.fulfilled, (state, action) => {
+        const trainer = state.trainers.find((t) => t.id === action.payload);
+        if (trainer) {
+          trainer.is_active = true;
+        }
       });
   },
 });

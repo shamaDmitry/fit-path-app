@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
-import { cn } from "@/lib/utils";
+import { cn, getEdgeFunctionErrorMessage } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import PasswordInput from "@/components/shared/PasswordInput";
 
@@ -66,8 +66,10 @@ const AddTrainer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !specialty || !email || !password) {
-      toast.error("Name, specialty, email and password are required");
+    if (!name || !specialty || !email || !password || !experience || !bio) {
+      toast.error(
+        "Name, specialty, email, password, experience, and bio are required",
+      );
 
       return;
     }
@@ -76,29 +78,42 @@ const AddTrainer = () => {
 
     try {
       // Call the Edge Function
-      const { error } = await supabase.functions.invoke("create-trainer", {
-        body: {
-          email,
-          password,
-          full_name: name,
-          bio,
-          specialty,
-          experience_years: experience,
-          phone,
-          color: selectedColor,
-          certifications,
+      const { error, response, data } = await supabase.functions.invoke(
+        "create-trainer",
+        {
+          body: {
+            email,
+            password,
+            full_name: name,
+            bio,
+            specialty,
+            experience_years: experience,
+            phone,
+            color: selectedColor,
+            certifications,
+          },
         },
-      });
+      );
 
-      if (error) throw error;
+      if (error || (response && !response.ok)) {
+        const errorMessage = await getEdgeFunctionErrorMessage(
+          error,
+          data,
+          response,
+        );
+
+        toast.error(errorMessage);
+
+        return;
+      }
 
       toast.success(`${name} added as trainer successfully.`);
 
       navigate("/admin/trainers");
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add trainer",
-      );
+      const errorMessage = await getEdgeFunctionErrorMessage(error, null, null);
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -125,7 +140,7 @@ const AddTrainer = () => {
             {/* Name */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                Full Name *
+                Full Name <span className="text-destructive">*</span>
               </Label>
 
               <Input
@@ -140,7 +155,9 @@ const AddTrainer = () => {
             {/* Email & Password */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Email *</Label>
+                <Label className="text-xs text-muted-foreground">
+                  Email <span className="text-destructive">*</span>
+                </Label>
 
                 <Input
                   type="email"
@@ -154,7 +171,7 @@ const AddTrainer = () => {
 
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Password *
+                  Password <span className="text-destructive">*</span>
                 </Label>
 
                 <PasswordInput
@@ -164,15 +181,6 @@ const AddTrainer = () => {
                   required
                   disabled={loading}
                 />
-
-                <Input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-10 bg-muted/50 border-border/50"
-                  disabled={loading}
-                />
               </div>
             </div>
 
@@ -180,7 +188,7 @@ const AddTrainer = () => {
               {/* Specialty */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Specialty *
+                  Specialty <span className="text-destructive">*</span>
                 </Label>
 
                 <Select
@@ -207,7 +215,8 @@ const AddTrainer = () => {
               {/* Experience */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Years of Experience
+                  Years of Experience{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
 
                 <Input

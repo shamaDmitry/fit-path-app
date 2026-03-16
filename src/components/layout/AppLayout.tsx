@@ -208,6 +208,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 flex items-center border-b border-border/50 px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
             <SidebarTrigger className="size-10 hover:bg-primary" />
+
+            <NavLink
+              to="/"
+              className={cn("p-4 flex items-center gap-2 ml-auto")}
+            >
+              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+                <Dumbbell className="w-4 h-4 text-primary-foreground" />
+              </div>
+
+              <span className="font-display font-bold text-lg">FitPath</span>
+            </NavLink>
           </header>
 
           <main className="flex-1 py-6 px-4">

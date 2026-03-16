@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   fetchAdminTrainers,
-  handleTest,
+  restoreTrainer,
   softDeleteTrainer,
 } from "@/store/slices/trainersSlice";
 import TrainerCard from "@/components/trainers/TrainerCard";
@@ -34,24 +34,24 @@ const AdminTrainers = () => {
 
         setRemoveId(null);
       } catch (error) {
-        toast.error(error as string);
-
-        toast.error("Failed to remove trainer");
+        toast.error(
+          error instanceof Error ? error.message : "Failed to remove trainer",
+        );
       }
     }
   };
 
-  const test = async () => {
-    await dispatch(handleTest()).unwrap();
-  };
+  const handleRestore = async (id: string) => {
+    try {
+      await dispatch(restoreTrainer(id)).unwrap();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-100">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+      toast.success("Trainer restored successfully");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to restore trainer",
+      );
+    }
+  };
 
   if (loading && trainers.length === 0) {
     return (
@@ -69,17 +69,16 @@ const AdminTrainers = () => {
             Trainers
           </h1>
 
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1 mb-2">
             Manage your trainer roster
           </p>
-        </div>
 
-        <Button
-          className="gradient-primary text-primary-foreground"
-          onClick={() => test()}
-        >
-          Test Function
-        </Button>
+          <div className="text-sm text-muted-foreground">
+            <span className="font-bold text-base">{trainers.length}</span>{" "}
+            trainer
+            {trainers.length !== 1 ? "s" : ""} found
+          </div>
+        </div>
 
         <Button
           className="gradient-primary text-primary-foreground"
@@ -103,8 +102,6 @@ const AdminTrainers = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {trainers.map((trainer, i) => {
-            console.log("trainer", trainer);
-
             return (
               <TrainerCard
                 key={trainer.id}
@@ -112,6 +109,7 @@ const AdminTrainers = () => {
                 delay={i * 0.05}
                 isAdmin={true}
                 onDelete={(id) => setRemoveId(id)}
+                onRestore={(id) => handleRestore(id)}
                 onEdit={(id) => navigate(`/admin/edit-trainer/${id}`)}
               />
             );

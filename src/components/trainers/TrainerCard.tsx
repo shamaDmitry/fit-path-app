@@ -3,15 +3,24 @@ import { trainerColors, type Trainer } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, Clock, Eye, Edit2, Trash2 } from "lucide-react";
+import {
+  Star,
+  Clock,
+  Eye,
+  Edit2,
+  Trash2,
+  ArchiveRestore,
+  OctagonX,
+} from "lucide-react";
 import { useNavigate } from "react-router";
-import { getUserInitials } from "@/lib/utils";
+import { cn, getUserInitials } from "@/lib/utils";
 
 interface TrainerCardProps {
   trainer: Trainer;
   onBook?: (trainer: Trainer) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onRestore?: (id: string) => void;
   isAdmin?: boolean;
   delay?: number;
 }
@@ -21,6 +30,7 @@ const TrainerCard = ({
   onBook,
   onEdit,
   onDelete,
+  onRestore,
   isAdmin = false,
   delay = 0,
 }: TrainerCardProps) => {
@@ -35,12 +45,29 @@ const TrainerCard = ({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="glass glass-hover rounded-xl p-5 flex flex-col"
+      className={cn(
+        "glass glass-hover rounded-xl p-5 flex flex-col relative",
+        !trainer.is_active && "cursor-not-allowed",
+      )}
     >
-      {/* Color accent top */}
+      {isAdmin && !trainer.is_active && (
+        <>
+          <div className="cursor-not-allowed bg-secondary! size-full absolute z-50 left-0 top-0 opacity-50 flex items-center justify-center">
+            <OctagonX className="text-destructive size-10" />
+          </div>
+
+          <Button
+            className="absolute right-4 top-4 z-50"
+            onClick={() => onRestore?.(trainer.id)}
+          >
+            <ArchiveRestore /> Restore
+          </Button>
+        </>
+      )}
+
       <div
         className="h-1 -mx-5 -mt-5 rounded-t-xl mb-4"
-        style={{ backgroundColor: `hsl(${color})` }}
+        style={{ backgroundColor: `hsl(${trainer.color})` }}
       />
 
       <div className="flex items-start gap-4 mb-4">
@@ -105,15 +132,18 @@ const TrainerCard = ({
               size="sm"
               className="flex-1"
               onClick={() => onEdit?.(trainer.id)}
+              disabled={!trainer.is_active}
             >
               <Edit2 className="w-3 h-3 mr-1" />
               Edit
             </Button>
+
             <Button
               variant="destructive"
               size="sm"
               className="flex-1"
               onClick={() => onDelete?.(trainer.id)}
+              disabled={!trainer.is_active}
             >
               <Trash2 className="w-3 h-3 mr-1" />
               Delete
