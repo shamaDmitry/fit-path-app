@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { trainerColors, type Trainer } from "@/data/mockData";
+import { type Trainer } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,21 +17,18 @@ interface TrainerCardProps {
   delay?: number;
 }
 
-const TrainerCard = ({ 
-  trainer, 
-  onBook, 
-  onEdit, 
-  onDelete, 
+const TrainerCard = ({
+  trainer,
+  onBook,
+  onEdit,
+  onDelete,
   onRestore,
-  isAdmin = false, 
-  delay = 0 
+  isAdmin = false,
+  delay = 0,
 }: TrainerCardProps) => {
   const navigate = useNavigate();
-
   const initials = getUserInitials(trainer.full_name);
-
-  const color = trainerColors[trainer.id] || "158 64% 32%";
-
+  const color = trainer.color || "158 64% 32%";
   const isInactive = trainer.is_active === false;
 
   return (
@@ -40,12 +37,15 @@ const TrainerCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
       className={cn(
-        "glass glass-hover rounded-xl p-5 flex flex-col relative",
-        isInactive && "opacity-70 grayscale-[0.5]"
+        "glass glass-hover rounded-xl p-5 flex flex-col relative overflow-hidden",
+        isInactive && "opacity-70 grayscale-[0.5]",
       )}
     >
       {isInactive && (
-        <Badge variant="destructive" className="absolute top-2 right-2 text-[10px] h-5">
+        <Badge
+          variant="destructive"
+          className="absolute top-2 right-2 text-xs h-5"
+        >
           Inactive
         </Badge>
       )}
@@ -88,7 +88,7 @@ const TrainerCard = ({
               color: `hsl(${color})`,
             }}
           >
-            {trainer.specialty}
+            {trainer.specialty?.label || "Specialist"}
           </Badge>
         </div>
       </div>
@@ -110,24 +110,18 @@ const TrainerCard = ({
         </span>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-4">
         {isAdmin ? (
           <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => onEdit?.(trainer.id)}
-            >
+            <Button className="flex-1" onClick={() => onEdit?.(trainer.id)}>
               <Edit2 className="w-3 h-3 mr-1" />
               Edit
             </Button>
-            
+
             {isInactive ? (
               <Button
                 variant="outline"
-                size="sm"
-                className="flex-1 border-primary/50 text-primary hover:bg-primary/10"
+                className="flex-1"
                 onClick={() => onRestore?.(trainer.id)}
               >
                 <RefreshCw className="w-3 h-3 mr-1" />
@@ -136,7 +130,6 @@ const TrainerCard = ({
             ) : (
               <Button
                 variant="destructive"
-                size="sm"
                 className="flex-1"
                 onClick={() => onDelete?.(trainer.id)}
               >
@@ -149,7 +142,6 @@ const TrainerCard = ({
           <>
             <Button
               variant="outline"
-              size="sm"
               className="flex-1"
               onClick={() => navigate(`/trainers/${trainer.id}`)}
             >
@@ -159,9 +151,8 @@ const TrainerCard = ({
 
             {onBook && (
               <Button
-                size="sm"
                 onClick={() => onBook(trainer)}
-                className="flex-1 gradient-primary text-primary-foreground text-xs"
+                className="flex-1 gradient-primary text-primary-foreground"
               >
                 Book Session
               </Button>

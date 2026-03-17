@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { createTrainer, fetchSpecialties } from "@/store/slices/trainersSlice";
+import { fetchSpecialties } from "@/store/slices/trainersSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,7 @@ import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import PasswordInput from "@/components/shared/PasswordInput";
 
 const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
   key,
@@ -44,17 +45,13 @@ const AddTrainer = () => {
   const [certifications, setCertifications] = useState<string[]>([]);
 
   useEffect(() => {
-    if (specialties.length === 0) {
-      dispatch(fetchSpecialties());
-    }
-  }, [dispatch, specialties.length]);
+    dispatch(fetchSpecialties());
+  }, [dispatch]);
 
   const addCertification = () => {
     const trimmed = certInput.trim();
-
     if (trimmed && !certifications.includes(trimmed)) {
       setCertifications([...certifications, trimmed]);
-
       setCertInput("");
     }
   };
@@ -66,51 +63,38 @@ const AddTrainer = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name || !specialtyId || !email || !password) {
-      toast.error("Name, specialty, email and password are required");
-
+    if (!name || !specialtyId || !email || !password || !experience || !bio) {
+      toast.error(
+        "Name, specialty, email, password, experience, and bio are required",
+      );
       return;
     }
 
     setLoading(true);
     try {
-      // 1. Sign up the trainer
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-            role: "trainer",
-            phone: phone,
-          },
+      // Call the Edge Function
+      const { error } = await supabase.functions.invoke("create-trainer", {
+        body: {
+          email,
+          password,
+          full_name: name,
+          bio,
+          specialty_id: specialtyId,
+          experience_years: experience,
+          phone,
+          color: selectedColor,
+          certifications,
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create user");
+      if (error) throw error;
 
-      // 2. Update the trainer record with the extra fields
-      await dispatch(
-        createTrainer({
-          id: authData.user.id,
-          full_name: name,
-          bio,
-          avatar_url: "",
-          specialty_id: specialtyId,
-          rating: 5.0,
-          experience_years: parseInt(experience) || 0,
-          color: selectedColor,
-          certifications,
-          phone: phone || undefined,
-          email: email || undefined,
-        })
-      ).unwrap();
-
-      toast.success(`${name} added as trainer`);
+      toast.success(`${name} added as trainer successfully.`);
       navigate("/admin/trainers");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add trainer");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add trainer",
+      );
     } finally {
       setLoading(false);
     }
@@ -137,7 +121,7 @@ const AddTrainer = () => {
             {/* Name */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                Full Name *
+                Full Name <span className="text-destructive">*</span>
               </Label>
 
               <Input
@@ -152,7 +136,9 @@ const AddTrainer = () => {
             {/* Email & Password */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Email *</Label>
+                <Label className="text-xs text-muted-foreground">
+                  Email <span className="text-destructive">*</span>
+                </Label>
 
                 <Input
                   type="email"
@@ -165,14 +151,14 @@ const AddTrainer = () => {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Password *</Label>
+                <Label className="text-xs text-muted-foreground">
+                  Password <span className="text-destructive">*</span>
+                </Label>
 
-                <Input
-                  type="password"
+                <PasswordInput
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-10 bg-muted/50 border-border/50"
+                  setPassword={(password) => setPassword(password)}
+                  placeholder="Enter password"
                   disabled={loading}
                 />
               </div>
@@ -182,19 +168,23 @@ const AddTrainer = () => {
               {/* Specialty */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Specialty *
+                  Specialty <span className="text-destructive">*</span>
                 </Label>
 
-                <Select value={specialtyId} onValueChange={setSpecialtyId} disabled={loading}>
+                <Select
+                  value={specialtyId}
+                  onValueChange={setSpecialtyId}
+                  disabled={loading}
+                >
                   <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
 
                   <SelectContent>
-                    {specialties.map((specialty) => {
+                    {specialties.map((s) => {
                       return (
-                        <SelectItem key={specialty.id} value={specialty.id}>
-                          {specialty.label}
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.label}
                         </SelectItem>
                       );
                     })}
@@ -206,6 +196,7 @@ const AddTrainer = () => {
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
                   Years of Experience
+                  <span className="text-destructive">*</span>
                 </Label>
 
                 <Input
@@ -327,7 +318,10 @@ const AddTrainer = () => {
 
             {/* Bio */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Bio</Label>
+              <Label className="text-xs text-muted-foreground">
+                Bio
+                <span className="text-destructive">*</span>
+              </Label>
 
               <Textarea
                 value={bio}

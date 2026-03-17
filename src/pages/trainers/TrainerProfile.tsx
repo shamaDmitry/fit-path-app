@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { trainerColors } from "@/data/mockData";
 import { motion } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +27,19 @@ const TrainerProfile = () => {
   const navigate = useNavigate();
 
   const dispatch = useAppDispatch();
-  const { trainer, loading, error } = useAppSelector((s) => s.trainers);
+  const {
+    currentTrainer: trainer,
+    loading,
+    error,
+  } = useAppSelector((s) => s.trainers);
 
   // const trainers = useAppSelector((store) => store.trainers.trainers);
   const timeslots = useAppSelector((store) => store.timeslots.timeslots);
+
   const appointments = useAppSelector(
     (store) => store.appointments.appointments,
   );
+
   const user = useAppSelector((store) => store.auth.user);
 
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -72,7 +77,7 @@ const TrainerProfile = () => {
     );
   }
 
-  const color = trainerColors[trainer.id] || "158 64% 32%";
+  const color = trainer.color || "158 64% 32%";
 
   const initials = getUserInitials(trainer.full_name);
 
@@ -132,7 +137,7 @@ const TrainerProfile = () => {
                     color: `hsl(${color})`,
                   }}
                 >
-                  {trainer.specialty}
+                  {trainer.specialty?.label || "Specialist"}
                 </Badge>
 
                 <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
@@ -183,6 +188,7 @@ const TrainerProfile = () => {
             <CardHeader>
               <CardTitle className="font-display text-base">Contact</CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-3">
               {trainer.email && (
                 <div className="flex items-center gap-3 text-sm">
@@ -190,6 +196,7 @@ const TrainerProfile = () => {
                   <span>{trainer.email}</span>
                 </div>
               )}
+
               {trainer.phone && (
                 <div className="flex items-center gap-3 text-sm">
                   <Phone className="w-4 h-4 text-muted-foreground" />

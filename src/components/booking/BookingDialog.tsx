@@ -159,7 +159,9 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
               {trainer.full_name}
             </p>
 
-            <p className="text-xs text-muted-foreground">{trainer.specialty}</p>
+            <p className="text-xs text-muted-foreground">
+              {trainer.specialty?.label}
+            </p>
           </div>
         </div>
 

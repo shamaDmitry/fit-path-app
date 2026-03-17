@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { updateTrainer, fetchTrainers, fetchSpecialties } from "@/store/slices/trainersSlice";
+import { updateTrainer, fetchAdminTrainers, fetchSpecialties } from "@/store/slices/trainersSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,8 +29,9 @@ const EditTrainer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  
+
   const { trainers, specialties, loading: storeLoading } = useAppSelector((s) => s.trainers);
+
   const trainer = trainers.find((t) => t.id === id);
 
   const [loading, setLoading] = useState(false);
@@ -45,13 +46,11 @@ const EditTrainer = () => {
   const [certifications, setCertifications] = useState<string[]>([]);
 
   useEffect(() => {
+    dispatch(fetchSpecialties());
     if (trainers.length === 0) {
-      dispatch(fetchTrainers());
+      dispatch(fetchAdminTrainers());
     }
-    if (specialties.length === 0) {
-      dispatch(fetchSpecialties());
-    }
-  }, [dispatch, trainers.length, specialties.length]);
+  }, [dispatch, trainers.length]);
 
   useEffect(() => {
     if (trainer) {
@@ -100,13 +99,17 @@ const EditTrainer = () => {
           color: selectedColor,
           certifications,
           phone: phone || undefined,
-        })
+          email: email || undefined,
+        }),
       ).unwrap();
 
       toast.success(`${name} updated successfully`);
+
       navigate("/admin/trainers");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update trainer");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update trainer",
+      );
     } finally {
       setLoading(false);
     }
@@ -114,7 +117,7 @@ const EditTrainer = () => {
 
   if (storeLoading && trainers.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -124,7 +127,10 @@ const EditTrainer = () => {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground mb-4">Trainer not found</p>
-        <Button onClick={() => navigate("/admin/trainers")}>Back to Trainers</Button>
+
+        <Button onClick={() => navigate("/admin/trainers")}>
+          Back to Trainers
+        </Button>
       </div>
     );
   }
@@ -142,7 +148,9 @@ const EditTrainer = () => {
 
       <Card className="glass border-border/50">
         <CardHeader>
-          <CardTitle className="font-display">Edit Trainer: {trainer?.full_name}</CardTitle>
+          <CardTitle className="font-display">
+            Edit Trainer: {trainer?.full_name}
+          </CardTitle>
         </CardHeader>
 
         <CardContent>
@@ -162,15 +170,21 @@ const EditTrainer = () => {
               />
             </div>
 
-            {/* Email (Read Only) */}
+            {/* Email */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Email</Label>
+
               <Input
                 type="email"
                 value={email}
                 className="h-10 bg-muted/20 border-border/30 text-muted-foreground cursor-not-allowed"
                 disabled={true}
               />
+
+              <p className="text-xs text-muted-foreground mt-1">
+                Email cannot be changed here as it is linked to the auth
+                account.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -180,17 +194,24 @@ const EditTrainer = () => {
                   Specialty *
                 </Label>
 
-                <Select value={specialtyId} onValueChange={setSpecialtyId} disabled={loading}>
+                <Select
+                  key={trainer?.id || "loading"}
+                  value={specialtyId}
+                  onValueChange={setSpecialtyId}
+                  disabled={loading}
+                >
                   <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
 
                   <SelectContent>
-                    {specialties.map((spec) => (
-                      <SelectItem key={spec.id} value={spec.id}>
-                        {spec.label}
-                      </SelectItem>
-                    ))}
+                    {specialties.map((s) => {
+                      return (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.label}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>

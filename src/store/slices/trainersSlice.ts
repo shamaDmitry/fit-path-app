@@ -1,18 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { type Trainer } from "@/data/mockData";
+import { type Trainer, type Specialty } from "@/data/mockData";
 import { supabase } from "@/lib/supabase";
-
-export interface Specialty {
-  id: string;
-  label: string;
-  value: string;
-}
 
 interface TrainersState {
   trainers: Trainer[];
   specialties: Specialty[];
   loading: boolean;
   error: string | null;
+  currentTrainer: Trainer | null;
 }
 
 const initialState: TrainersState = {
@@ -20,7 +15,38 @@ const initialState: TrainersState = {
   specialties: [],
   loading: false,
   error: null,
+  currentTrainer: null
 };
+
+// Define local interfaces for the joined data structure from Supabase
+interface JoinedTrainerData {
+  id: string;
+  full_name: string;
+  bio: string;
+  avatar_url: string;
+  specialty_id: string;
+  rating: number;
+  experience_years: number;
+  color: string;
+  certifications?: string[];
+  phone?: string;
+  email?: string;
+  is_active?: boolean;
+  specialty: {
+    id: string;
+    label: string;
+    value: string;
+  } | null;
+}
+
+const mapJoinedToTrainer = (data: JoinedTrainerData): Trainer => ({
+  ...data,
+  specialty: data.specialty ? {
+    id: data.specialty.id,
+    label: data.specialty.label,
+    value: data.specialty.value
+  } : undefined
+});
 
 export const fetchSpecialties = createAsyncThunk(
   "trainers/fetchSpecialties",
@@ -42,17 +68,16 @@ export const fetchTrainer = createAsyncThunk(
       .from("trainers")
       .select(`
         *,
-        specialty:specialties(label)
+        specialty:specialties(*)
       `)
       .eq("id", id)
       .single();
 
     if (error) return rejectWithValue(error.message);
+
+    if (!data) return rejectWithValue("Trainer not found");
     
-    return {
-      ...data,
-      specialty: data.specialty?.label || "Unassigned"
-    } as Trainer;
+    return mapJoinedToTrainer(data as unknown as JoinedTrainerData);
   }
 );
 
@@ -63,19 +88,14 @@ export const fetchTrainers = createAsyncThunk(
       .from("trainers")
       .select(`
         *,
-        specialty:specialties(label)
+        specialty:specialties(*)
       `)
       .eq("is_active", true)
       .order("full_name");
 
     if (error) return rejectWithValue(error.message);
     
-    const flattenedData = data.map((trainer: any) => ({
-      ...trainer,
-      specialty: trainer.specialty?.label || "Unassigned"
-    }));
-
-    return flattenedData as Trainer[];
+    return (data as unknown as JoinedTrainerData[]).map(mapJoinedToTrainer);
   }
 );
 
@@ -86,19 +106,14 @@ export const fetchAdminTrainers = createAsyncThunk(
       .from("trainers")
       .select(`
         *,
-        specialty:specialties(label)
+        specialty:specialties(*)
       `)
       .order("is_active", { ascending: false })
       .order("full_name");
 
     if (error) return rejectWithValue(error.message);
     
-    const flattenedData = data.map((trainer: any) => ({
-      ...trainer,
-      specialty: trainer.specialty?.label || "Unassigned"
-    }));
-
-    return flattenedData as Trainer[];
+    return (data as unknown as JoinedTrainerData[]).map(mapJoinedToTrainer);
   }
 );
 
@@ -110,22 +125,20 @@ export const createTrainer = createAsyncThunk(
       .insert([{ ...trainer, is_active: true }])
       .select(`
         *,
-        specialty:specialties(label)
+        specialty:specialties(*)
       `)
       .single();
 
     if (error) return rejectWithValue(error.message);
     
-    return {
-      ...data,
-      specialty: data.specialty?.label || "Unassigned"
-    } as Trainer;
+    return mapJoinedToTrainer(data as unknown as JoinedTrainerData);
   }
 );
 
 export const updateTrainer = createAsyncThunk(
   "trainers/updateTrainer",
   async (trainer: Partial<Trainer> & { id: string }, { rejectWithValue }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { specialty: _specialty, ...updateData } = trainer;
 
     const { data, error } = await supabase
@@ -134,16 +147,13 @@ export const updateTrainer = createAsyncThunk(
       .eq("id", trainer.id)
       .select(`
         *,
-        specialty:specialties(label)
+        specialty:specialties(*)
       `)
       .single();
 
     if (error) return rejectWithValue(error.message);
     
-    return {
-      ...data,
-      specialty: data.specialty?.label || "Unassigned"
-    } as Trainer;
+    return mapJoinedToTrainer(data as unknown as JoinedTrainerData);
   }
 );
 
@@ -169,16 +179,13 @@ export const restoreTrainer = createAsyncThunk(
       .eq("id", id)
       .select(`
         *,
-        specialty:specialties(label)
+        specialty:specialties(*)
       `)
       .single();
 
     if (error) return rejectWithValue(error.message);
     
-    return {
-      ...data,
-      specialty: data.specialty?.label || "Unassigned"
-    } as Trainer;
+    return mapJoinedToTrainer(data as unknown as JoinedTrainerData);
   }
 );
 
@@ -196,13 +203,19 @@ const trainersSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchTrainer.fulfilled, (state, action) => {
+        state.currentTrainer = action.payload;
+
+        
+
         state.loading = false;
-        const index = state.trainers.findIndex((t) => t.id === action.payload.id);
-        if (index !== -1) {
-          state.trainers[index] = action.payload;
-        } else {
-          state.trainers.push(action.payload);
-        }
+
+
+        // const index = state.trainers.findIndex((t) => t.id === action.payload.id);
+        // if (index !== -1) {
+        //   state.trainers[index] = action.payload;
+        // } else {
+        //   state.trainers.push(action.payload);
+        // }
       })
       .addCase(fetchTrainer.rejected, (state, action) => {
         state.loading = false;
