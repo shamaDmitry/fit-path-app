@@ -163,7 +163,7 @@ const AppointmentDetail = () => {
 
                 {trainer && (
                   <p className="text-xs text-muted-foreground">
-                    {trainer.specialty}
+                    {trainer.specialty?.label}
                   </p>
                 )}
               </div>

@@ -37,7 +37,7 @@ const TrainerCard = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
       className={cn(
-        "glass glass-hover rounded-xl p-5 flex flex-col relative overflow-hidden",
+        "glass rounded-xl p-5 flex flex-col relative overflow-hidden",
         isInactive && "opacity-70 grayscale-[0.5]",
       )}
     >

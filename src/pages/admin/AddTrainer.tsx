@@ -30,17 +30,18 @@ const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({
 const AddTrainer = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+
   const { specialties } = useAppSelector((s) => s.trainers);
 
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
+  const [name, setName] = useState("Test Trainer");
+  const [bio, setBio] = useState("Test Trainer bio");
   const [specialtyId, setSpecialtyId] = useState("");
-  const [experience, setExperience] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [selectedColor, setSelectedColor] = useState(colorOptions[0].value);
+  const [experience, setExperience] = useState("5");
+  const [phone, setPhone] = useState("+380994567896");
+  const [email, setEmail] = useState("test@test.com");
+  const [password, setPassword] = useState("test1234");
+  const [selectedColor, setSelectedColor] = useState(colorOptions[4].value);
   const [certInput, setCertInput] = useState("");
   const [certifications, setCertifications] = useState<string[]>([]);
 
@@ -48,8 +49,21 @@ const AddTrainer = () => {
     dispatch(fetchSpecialties());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (!specialties.length) return;
+
+    const hasSelectedSpecialty = specialties.some(
+      (specialty) => specialty.id === specialtyId,
+    );
+
+    if (!hasSelectedSpecialty) {
+      setSpecialtyId(specialties[0].id);
+    }
+  }, [specialtyId, specialties]);
+
   const addCertification = () => {
     const trimmed = certInput.trim();
+
     if (trimmed && !certifications.includes(trimmed)) {
       setCertifications([...certifications, trimmed]);
       setCertInput("");
@@ -174,17 +188,17 @@ const AddTrainer = () => {
                 <Select
                   value={specialtyId}
                   onValueChange={setSpecialtyId}
-                  disabled={loading}
+                  disabled={loading || specialties.length === 0}
                 >
                   <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
                     <SelectValue placeholder="Select specialty" />
                   </SelectTrigger>
 
                   <SelectContent>
-                    {specialties.map((s) => {
+                    {specialties.map((item) => {
                       return (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.label}
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.label} - {item.value}
                         </SelectItem>
                       );
                     })}

@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { updateTrainer, fetchAdminTrainers, fetchSpecialties } from "@/store/slices/trainersSlice";
+import {
+  updateTrainer,
+  fetchSpecialties,
+  fetchTrainer,
+} from "@/store/slices/trainersSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,9 +34,12 @@ const EditTrainer = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const { trainers, specialties, loading: storeLoading } = useAppSelector((s) => s.trainers);
-
-  const trainer = trainers.find((t) => t.id === id);
+  const {
+    currentTrainer: trainer,
+    trainers,
+    specialties,
+    loading: storeLoading,
+  } = useAppSelector((s) => s.trainers);
 
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -47,13 +54,18 @@ const EditTrainer = () => {
 
   useEffect(() => {
     dispatch(fetchSpecialties());
-    if (trainers.length === 0) {
-      dispatch(fetchAdminTrainers());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchTrainer(id));
     }
-  }, [dispatch, trainers.length]);
+  }, [dispatch, id]);
 
   useEffect(() => {
     if (trainer) {
+      console.log("trainer", trainer);
+
       setName(trainer.full_name || "");
       setBio(trainer.bio || "");
       setSpecialtyId(trainer.specialty_id || "");
@@ -84,6 +96,7 @@ const EditTrainer = () => {
 
     if (!name || !specialtyId) {
       toast.error("Name and specialty are required");
+
       return;
     }
 
@@ -158,7 +171,7 @@ const EditTrainer = () => {
             {/* Name */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">
-                Full Name *
+                Full Name <span className="text-destructive">*</span>
               </Label>
 
               <Input
@@ -171,8 +184,10 @@ const EditTrainer = () => {
             </div>
 
             {/* Email */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Email</Label>
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">
+                Email <span className="text-destructive">*</span>
+              </Label>
 
               <Input
                 type="email"
@@ -181,7 +196,7 @@ const EditTrainer = () => {
                 disabled={true}
               />
 
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground font-medium">
                 Email cannot be changed here as it is linked to the auth
                 account.
               </p>
@@ -191,7 +206,7 @@ const EditTrainer = () => {
               {/* Specialty */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Specialty *
+                  Specialty <span className="text-destructive">*</span>
                 </Label>
 
                 <Select
@@ -219,7 +234,8 @@ const EditTrainer = () => {
               {/* Experience */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Years of Experience
+                  Years of Experience{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
 
                 <Input
@@ -341,7 +357,9 @@ const EditTrainer = () => {
 
             {/* Bio */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Bio</Label>
+              <Label className="text-xs text-muted-foreground">
+                Bio <span className="text-destructive">*</span>
+              </Label>
 
               <Textarea
                 value={bio}
