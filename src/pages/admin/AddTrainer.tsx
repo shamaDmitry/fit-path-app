@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -18,7 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
 import { trainerColors } from "@/data/mockData";
-import { cn } from "@/lib/utils";
+import { cn, getEdgeFunctionErrorMessage } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import PasswordInput from "@/components/shared/PasswordInput";
 
@@ -86,29 +87,42 @@ const AddTrainer = () => {
 
     setLoading(true);
     try {
-      // Call the Edge Function
-      const { error } = await supabase.functions.invoke("create-trainer", {
-        body: {
-          email,
-          password,
-          full_name: name,
-          bio,
-          specialty_id: specialtyId,
-          experience_years: experience,
-          phone,
-          color: selectedColor,
-          certifications,
+      const { error, data, response } = await supabase.functions.invoke(
+        "create-trainer",
+        {
+          body: {
+            email,
+            password,
+            full_name: name,
+            bio,
+            specialty_id: specialtyId,
+            experience_years: experience,
+            phone,
+            color: selectedColor,
+            certifications,
+          },
         },
-      });
+      );
 
-      if (error) throw error;
+      if (error || (response && !response.ok)) {
+        const errorMessage = await getEdgeFunctionErrorMessage(
+          error,
+          data,
+          response,
+        );
+
+        toast.error(errorMessage);
+
+        return;
+      }
 
       toast.success(`${name} added as trainer successfully.`);
+
       navigate("/admin/trainers");
     } catch (error: unknown) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add trainer",
-      );
+      const errorMessage = await getEdgeFunctionErrorMessage(error, null, null);
+
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -124,245 +138,250 @@ const AddTrainer = () => {
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back
       </Button>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="glass border-border/50">
+          <CardHeader>
+            <CardTitle className="font-display">Add New Trainer</CardTitle>
+          </CardHeader>
 
-      <Card className="glass border-border/50">
-        <CardHeader>
-          <CardTitle className="font-display">Add New Trainer</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Full Name <span className="text-destructive">*</span>
-              </Label>
-
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                className="h-10 bg-muted/50 border-border/50"
-                disabled={loading}
-              />
-            </div>
-
-            {/* Email & Password */}
-            <div className="grid grid-cols-2 gap-3">
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Name */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Email <span className="text-destructive">*</span>
+                  Full Name <span className="text-destructive">*</span>
                 </Label>
 
                 <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="trainer@fitpath.com"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
                   className="h-10 bg-muted/50 border-border/50"
                   disabled={loading}
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  Password <span className="text-destructive">*</span>
-                </Label>
+              {/* Email & Password */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    Email <span className="text-destructive">*</span>
+                  </Label>
 
-                <PasswordInput
-                  value={password}
-                  setPassword={(password) => setPassword(password)}
-                  placeholder="Enter password"
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="trainer@fitpath.com"
+                    className="h-10 bg-muted/50 border-border/50"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    Password <span className="text-destructive">*</span>
+                  </Label>
+
+                  <PasswordInput
+                    value={password}
+                    setPassword={(password) => setPassword(password)}
+                    placeholder="Enter password"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {/* Specialty */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    Specialty <span className="text-destructive">*</span>
+                  </Label>
+
+                  <Select
+                    value={specialtyId}
+                    onValueChange={setSpecialtyId}
+                    disabled={loading || specialties.length === 0}
+                  >
+                    <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
+                      <SelectValue placeholder="Select specialty" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {specialties.map((item) => {
+                        return (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.label} - {item.value}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Experience */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">
+                    Years of Experience
+                    <span className="text-destructive">*</span>
+                  </Label>
+
+                  <Input
+                    type="number"
+                    value={experience}
+                    onChange={(e) => setExperience(e.target.value)}
+                    placeholder="5"
+                    className="h-10 bg-muted/50 border-border/50"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Contact Info */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Phone</Label>
+
+                <Input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 555-0100"
+                  className="h-10 bg-muted/50 border-border/50"
                   disabled={loading}
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              {/* Specialty */}
+              {/* Color Selector */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Specialty <span className="text-destructive">*</span>
+                  Trainer Color
                 </Label>
 
-                <Select
-                  value={specialtyId}
-                  onValueChange={setSpecialtyId}
-                  disabled={loading || specialties.length === 0}
-                >
-                  <SelectTrigger className="h-10 bg-muted/50 border-border/50 w-full">
-                    <SelectValue placeholder="Select specialty" />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {specialties.map((item) => {
-                      return (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.label} - {item.value}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2 flex-wrap">
+                  {colorOptions.map((color) => {
+                    return (
+                      <Button
+                        size={"icon"}
+                        key={color.key}
+                        type="button"
+                        onClick={() => setSelectedColor(color.value)}
+                        disabled={loading}
+                        className={cn(
+                          "w-8 h-8 rounded-full border-3 transition-all duration-200",
+                        )}
+                        style={{
+                          backgroundColor: `hsl(${color.value})`,
+                          borderColor: `hsl(${color.value})`,
+                          boxShadow:
+                            selectedColor === color.value
+                              ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(${color.value})`
+                              : "none",
+                        }}
+                      >
+                        {selectedColor === color.value && (
+                          <Check className="size-5 font-bold" />
+                        )}
+                      </Button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* Experience */}
+              {/* Certifications */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Years of Experience
+                  Certifications
+                </Label>
+
+                <div className="flex gap-2">
+                  <Input
+                    value={certInput}
+                    onChange={(e) => setCertInput(e.target.value)}
+                    placeholder="e.g. NASM-CPT"
+                    className="h-10 bg-muted/50 border-border/50"
+                    disabled={loading}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCertification();
+                      }
+                    }}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 shrink-0"
+                    onClick={addCertification}
+                    disabled={loading}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {certifications.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {certifications.map((cert) => (
+                      <Badge
+                        key={cert}
+                        variant="secondary"
+                        className="gap-1 pr-1 text-sm"
+                      >
+                        {cert}
+                        <Button
+                          variant={"destructive"}
+                          size={"icon-xs"}
+                          onClick={() => removeCertification(cert)}
+                          className="ml-0.5 transition-colors rounded-2xl"
+                          disabled={loading}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Bio */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">
+                  Bio
                   <span className="text-destructive">*</span>
                 </Label>
 
-                <Input
-                  type="number"
-                  value={experience}
-                  onChange={(e) => setExperience(e.target.value)}
-                  placeholder="5"
-                  className="h-10 bg-muted/50 border-border/50"
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Brief description..."
+                  className="bg-muted/50 border-border/50 min-h-25"
                   disabled={loading}
                 />
               </div>
-            </div>
 
-            {/* Contact Info */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Phone</Label>
-
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 555-0100"
-                className="h-10 bg-muted/50 border-border/50"
+              <Button
+                type="submit"
+                className="w-full gradient-primary text-primary-foreground h-10"
                 disabled={loading}
-              />
-            </div>
-
-            {/* Color Selector */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Trainer Color
-              </Label>
-
-              <div className="flex gap-2 flex-wrap">
-                {colorOptions.map((color) => {
-                  return (
-                    <Button
-                      size={"icon"}
-                      key={color.key}
-                      type="button"
-                      onClick={() => setSelectedColor(color.value)}
-                      disabled={loading}
-                      className={cn(
-                        "w-8 h-8 rounded-full border-3 transition-all duration-200",
-                      )}
-                      style={{
-                        backgroundColor: `hsl(${color.value})`,
-                        borderColor: `hsl(${color.value})`,
-                        boxShadow:
-                          selectedColor === color.value
-                            ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(${color.value})`
-                            : "none",
-                      }}
-                    >
-                      {selectedColor === color.value && (
-                        <Check className="size-5 font-bold" />
-                      )}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Certifications */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Certifications
-              </Label>
-
-              <div className="flex gap-2">
-                <Input
-                  value={certInput}
-                  onChange={(e) => setCertInput(e.target.value)}
-                  placeholder="e.g. NASM-CPT"
-                  className="h-10 bg-muted/50 border-border/50"
-                  disabled={loading}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addCertification();
-                    }
-                  }}
-                />
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 shrink-0"
-                  onClick={addCertification}
-                  disabled={loading}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {certifications.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {certifications.map((cert) => (
-                    <Badge
-                      key={cert}
-                      variant="secondary"
-                      className="gap-1 pr-1 text-sm"
-                    >
-                      {cert}
-                      <Button
-                        variant={"destructive"}
-                        size={"icon-xs"}
-                        onClick={() => removeCertification(cert)}
-                        className="ml-0.5 transition-colors rounded-2xl"
-                        disabled={loading}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Bio */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                Bio
-                <span className="text-destructive">*</span>
-              </Label>
-
-              <Textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Brief description..."
-                className="bg-muted/50 border-border/50 min-h-25"
-                disabled={loading}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full gradient-primary text-primary-foreground h-10"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Trainer...
-                </>
-              ) : (
-                "Add Trainer"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating Trainer...
+                  </>
+                ) : (
+                  "Add Trainer"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };
