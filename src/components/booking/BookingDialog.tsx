@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { trainerColors, type Trainer } from "@/data/mockData";
+import { type Trainer } from "@/data/mockData";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { createAppointment } from "@/store/slices/appointmentsSlice";
 import { fetchPublicTimeslots } from "@/store/slices/timeslotsSlice";
@@ -30,7 +30,9 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector((s) => s.auth.user);
-  const { timeslots, loading: slotsLoading } = useAppSelector((s) => s.timeslots);
+  const { timeslots, loading: slotsLoading } = useAppSelector(
+    (s) => s.timeslots,
+  );
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -44,9 +46,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
     }
   }, [dispatch, open, trainerId]);
 
-  const trainerColor = trainerId
-    ? trainerColors[trainerId] || "158 64% 32%"
-    : "158 64% 32%";
+  const trainerColor = trainer?.color || "158 64% 32%";
 
   // Get available slots for this trainer
   const availableSlots = useMemo(
@@ -120,7 +120,9 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
       setSelectedDate(null);
       setSelectedSlotId(null);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to book session");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to book session",
+      );
     } finally {
       setIsBooking(false);
     }
@@ -171,7 +173,9 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
         {slotsLoading ? (
           <div className="py-8 text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-            <p className="text-sm text-muted-foreground mt-2">Loading available slots...</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Loading available slots...
+            </p>
           </div>
         ) : dateGroups.length === 0 ? (
           <div className="py-8 text-center">
