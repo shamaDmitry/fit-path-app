@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
-  cancelAppointment,
+  fetchTrainerAppointments,
   updateAppointmentStatus,
 } from "@/store/slices/appointmentsSlice";
-import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
+import {
+  fetchTrainerTimeslots,
+} from "@/store/slices/timeslotsSlice";
 import StatCard from "@/components/dashboard/StatCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { Calendar, CheckCircle2, Clock, XCircle } from "lucide-react";
@@ -14,63 +16,70 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TrainerDashboard = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  const { appointments, loading: appointmentsLoading } = useAppSelector((s) => s.appointments);
+  const { timeslots, loading: timeslotsLoading } = useAppSelector((s) => s.timeslots);
   const user = useAppSelector((s) => s.auth.user);
-  const appointments = useAppSelector((s) => s.appointments.appointments);
-  const timeslots = useAppSelector((s) => s.timeslots.timeslots);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [completeId, setCompleteId] = useState<string | null>(null);
 
-  const myAppointments = appointments.filter(
-    (appointment) => appointment.trainer_id === user?.id,
-  );
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchTrainerAppointments(user.id));
+      dispatch(fetchTrainerTimeslots(user.id));
+    }
+  }, [dispatch, user?.id]);
 
-  const mySlots = timeslots.filter((ts) => ts.trainer_id === user?.id);
+  const myAppointments = appointments;
+  const mySlots = timeslots;
 
   const scheduled = myAppointments.filter(
     (appointment) => appointment.status === "scheduled",
   );
 
-  const completed = myAppointments.filter(
+  const completedCount = myAppointments.filter(
     (appointment) => appointment.status === "completed",
   ).length;
 
-  const cancelled = myAppointments.filter(
+  const cancelledCount = myAppointments.filter(
     (appointment) => appointment.status === "cancelled",
   ).length;
 
-  const availableSlots = mySlots.filter((ts) => !ts.is_booked).length;
+  const availableSlotsCount = mySlots.filter((ts) => !ts.is_booked).length;
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!cancelId) return;
 
-    const apt = appointments.find((a) => a.id === cancelId);
-
-    dispatch(cancelAppointment(cancelId));
-
-    if (apt?.timeslot_id) {
-      dispatch(unbookTimeslot(apt.timeslot_id));
+    try {
+      await dispatch(updateAppointmentStatus({ id: cancelId, status: "cancelled" })).unwrap();
+      toast.success("Appointment cancelled");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to cancel appointment");
+    } finally {
+      setCancelId(null);
     }
-
-    toast.success("Appointment cancelled");
-
-    setCancelId(null);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!completeId) return;
 
-    dispatch(updateAppointmentStatus({ id: completeId, status: "completed" }));
-
-    toast.success("Appointment marked as completed");
-
-    setCompleteId(null);
+    try {
+      await dispatch(updateAppointmentStatus({ id: completeId, status: "completed" })).unwrap();
+      toast.success("Appointment marked as completed");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to complete appointment");
+    } finally {
+      setCompleteId(null);
+    }
   };
+
+  const loading = appointmentsLoading || timeslotsLoading;
 
   return (
     <div className="mx-auto space-y-8">
@@ -94,33 +103,41 @@ const TrainerDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <StatCard
-          title="Scheduled"
-          value={scheduled.length}
-          icon={Clock}
-          delay={0}
-        />
+        {loading ? (
+          new Array(4)
+            .fill(0)
+            .map((_, i) => <Skeleton key={i} className="h-40" />)
+        ) : (
+          <>
+            <StatCard
+              title="Scheduled"
+              value={scheduled.length}
+              icon={Clock}
+              delay={0}
+            />
 
-        <StatCard
-          title="Completed"
-          value={completed}
-          icon={CheckCircle2}
-          delay={0.05}
-        />
+            <StatCard
+              title="Completed"
+              value={completedCount}
+              icon={CheckCircle2}
+              delay={0.05}
+            />
 
-        <StatCard
-          title="Cancelled"
-          value={cancelled}
-          icon={XCircle}
-          delay={0.1}
-        />
+            <StatCard
+              title="Cancelled"
+              value={cancelledCount}
+              icon={XCircle}
+              delay={0.1}
+            />
 
-        <StatCard
-          title="Open Slots"
-          value={availableSlots}
-          icon={Calendar}
-          delay={0.15}
-        />
+            <StatCard
+              title="Open Slots"
+              value={availableSlotsCount}
+              icon={Calendar}
+              delay={0.15}
+            />
+          </>
+        )}
       </div>
 
       {/* Upcoming */}

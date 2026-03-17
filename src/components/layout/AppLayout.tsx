@@ -132,7 +132,11 @@ function AppSidebarContent() {
               </SidebarGroupLabel>
 
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu
+                  className={cn("gap-2", {
+                    "items-center": collapsed,
+                  })}
+                >
                   {navItems.map((item) => {
                     return (
                       <SidebarMenuItem key={item.title}>
@@ -147,7 +151,7 @@ function AppSidebarContent() {
                             className="hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
                             activeClassName="bg-primary text-primary-foreground font-medium"
                           >
-                            <item.icon className="mr-2 h-4 w-4 shrink-0" />
+                            <item.icon className="mr-2 size-6 shrink-0" />
 
                             {!collapsed && <span>{item.title}</span>}
 
