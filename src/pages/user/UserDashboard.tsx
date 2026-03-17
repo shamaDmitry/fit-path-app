@@ -1,62 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { cancelAppointment } from "@/store/slices/appointmentsSlice";
+import { fetchUserAppointments, updateAppointmentStatus } from "@/store/slices/appointmentsSlice";
 import StatCard from "@/components/dashboard/StatCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import { Calendar, CheckCircle2, Clock, Search } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
-import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const user = useAppSelector((store) => {
-    return store.auth.user;
-  });
+  const user = useAppSelector((store) => store.auth.user);
+  const { appointments, loading } = useAppSelector((store) => store.appointments);
 
-  const appointments = useAppSelector((store) => {
-    return store.appointments.appointments;
-  });
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchUserAppointments(user.id));
+    }
+  }, [dispatch, user?.id]);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
   const myAppointments = appointments
-    .filter((appointment) => {
-      return appointment.user_id === user?.id;
-    })
-    .sort((a, b) => {
-      return (
-        new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-      );
-    });
+    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
-  const scheduled = myAppointments.filter((appointment) => {
-    return appointment.status === "scheduled";
-  }).length;
+  const scheduled = myAppointments.filter((appointment) => appointment.status === "scheduled").length;
+  const completed = myAppointments.filter((appointment) => appointment.status === "completed").length;
 
-  const completed = myAppointments.filter((appointment) => {
-    return appointment.status === "completed";
-  }).length;
-
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!cancelId) return;
 
-    const appointment = appointments.find((item) => item.id === cancelId);
-
-    dispatch(cancelAppointment(cancelId));
-
-    if (appointment?.timeslot_id) {
-      dispatch(unbookTimeslot(appointment.timeslot_id));
+    try {
+      await dispatch(updateAppointmentStatus({ id: cancelId, status: "cancelled" })).unwrap();
+      toast.success("Appointment cancelled");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to cancel appointment");
+    } finally {
+      setCancelId(null);
     }
-
-    toast.success("Appointment cancelled");
-
-    setCancelId(null);
   };
+
+  if (loading && appointments.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <section className="mx-auto space-y-8">

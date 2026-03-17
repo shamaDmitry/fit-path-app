@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { cancelAppointment } from "@/store/slices/appointmentsSlice";
+// import { cancelAppointment } from "@/store/slices/appointmentsSlice";
 import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
@@ -36,7 +36,7 @@ const AdminAppointments = () => {
 
     const apt = appointments.find((a) => a.id === cancelId);
 
-    dispatch(cancelAppointment(cancelId));
+    // dispatch(cancelAppointment(cancelId));
 
     if (apt?.timeslot_id) {
       dispatch(unbookTimeslot(apt.timeslot_id));

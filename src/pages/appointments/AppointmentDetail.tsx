@@ -1,7 +1,7 @@
 import { useParams, useNavigate, NavLink } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
-  cancelAppointment,
+  // cancelAppointment,
   updateAppointmentStatus,
 } from "@/store/slices/appointmentsSlice";
 
@@ -25,7 +25,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useState } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
+// import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
 
 const statusStyles: Record<string, string> = {
   scheduled: "bg-info/10 text-info border-info/20",
@@ -88,23 +88,33 @@ const AppointmentDetail = () => {
     !appointment.paid &&
     user?.id === appointment.user_id;
 
-  const handleCancel = () => {
-    dispatch(cancelAppointment(appointment.id));
-
-    if (appointment.timeslot_id)
-      dispatch(unbookTimeslot(appointment.timeslot_id));
-
-    toast.success("Appointment cancelled");
-
-    setConfirmCancel(false);
+  const handleCancel = async () => {
+    try {
+      await dispatch(
+        updateAppointmentStatus({ id: appointment.id, status: "cancelled" }),
+      ).unwrap();
+      toast.success("Appointment cancelled");
+      setConfirmCancel(false);
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to cancel appointment",
+      );
+    }
   };
 
-  const handleComplete = () => {
-    dispatch(
-      updateAppointmentStatus({ id: appointment.id, status: "completed" }),
-    );
-
-    toast.success("Appointment marked as completed");
+  const handleComplete = async () => {
+    try {
+      await dispatch(
+        updateAppointmentStatus({ id: appointment.id, status: "completed" }),
+      ).unwrap();
+      toast.success("Appointment marked as completed");
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to complete appointment",
+      );
+    }
   };
 
   const handlePay = () => {

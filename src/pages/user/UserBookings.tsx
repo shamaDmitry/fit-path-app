@@ -1,42 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { cancelAppointment } from "@/store/slices/appointmentsSlice";
-import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
+import { fetchUserAppointments, updateAppointmentStatus } from "@/store/slices/appointmentsSlice";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const UserBookings = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector((s) => s.auth.user);
+  const { appointments, loading } = useAppSelector((s) => s.appointments);
 
-  const appointments = useAppSelector((s) => s.appointments.appointments);
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchUserAppointments(user.id));
+    }
+  }, [dispatch, user?.id]);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
-  const myAppointments = appointments
-    .filter((appointment) => appointment.user_id === user?.id)
-    .sort(
-      (a, b) =>
-        new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
-    );
+  const myAppointments = [...appointments]
+    .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (!cancelId) return;
 
-    const apt = appointments.find((a) => a.id === cancelId);
-
-    dispatch(cancelAppointment(cancelId));
-
-    if (apt?.timeslot_id) {
-      dispatch(unbookTimeslot(apt.timeslot_id));
+    try {
+      await dispatch(updateAppointmentStatus({ id: cancelId, status: "cancelled" })).unwrap();
+      toast.success("Appointment cancelled");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to cancel appointment");
+    } finally {
+      setCancelId(null);
     }
-
-    toast.success("Appointment cancelled");
-
-    setCancelId(null);
   };
+
+  if (loading && appointments.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto space-y-6">

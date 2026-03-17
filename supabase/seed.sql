@@ -61,7 +61,6 @@ VALUES
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Update Trainer Details with Rich Data (Trigger should have already created base rows)
--- We use labels to find the specialties created in the migration
 UPDATE public.trainers
 SET 
   bio = 'NASM certified personal trainer specializing in strength training and body transformation.',
@@ -77,3 +76,13 @@ SET
   color = '280 60% 50%',
   certifications = ARRAY['RYT-500', 'Pilates Certified']
 WHERE id = '7f5e1a32-1234-4567-89ab-cdef01234567';
+
+-- Add initial timeslots for trainers
+INSERT INTO public.timeslots (trainer_id, date, start_time, end_time, is_booked)
+VALUES 
+('e79f6e16-09a2-4a73-8b77-3e6f98126742', CURRENT_DATE + 1, '09:00', '10:00', false),
+('e79f6e16-09a2-4a73-8b77-3e6f98126742', CURRENT_DATE + 1, '10:00', '11:00', false),
+('e79f6e16-09a2-4a73-8b77-3e6f98126742', CURRENT_DATE + 1, '14:00', '15:00', false),
+('e79f6e16-09a2-4a73-8b77-3e6f98126742', CURRENT_DATE + 2, '09:00', '10:00', false),
+('7f5e1a32-1234-4567-89ab-cdef01234567', CURRENT_DATE + 1, '08:00', '09:00', false),
+('7f5e1a32-1234-4567-89ab-cdef01234567', CURRENT_DATE + 1, '11:00', '12:00', false);

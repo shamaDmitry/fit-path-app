@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trainerColors, type Trainer } from "@/data/mockData";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { addAppointment } from "@/store/slices/appointmentsSlice";
-import { bookTimeslot } from "@/store/slices/timeslotsSlice";
+import { createAppointment } from "@/store/slices/appointmentsSlice";
+import { fetchPublicTimeslots } from "@/store/slices/timeslotsSlice";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Check } from "lucide-react";
+import { Calendar, Clock, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,13 +30,19 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector((s) => s.auth.user);
-
-  const timeslots = useAppSelector((s) => s.timeslots.timeslots);
+  const { timeslots, loading: slotsLoading } = useAppSelector((s) => s.timeslots);
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
 
   const trainerId = trainer?.id;
+
+  useEffect(() => {
+    if (open && trainerId) {
+      dispatch(fetchPublicTimeslots(trainerId));
+    }
+  }, [dispatch, open, trainerId]);
 
   const trainerColor = trainerId
     ? trainerColors[trainerId] || "158 64% 32%"
@@ -80,10 +86,9 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
 
   const initials = getUserInitials(trainer.full_name);
 
-  const handleBook = () => {
-    if (!selectedSlot) {
+  const handleBook = async () => {
+    if (!selectedSlot || !user?.id) {
       toast.error("Please select a timeslot");
-
       return;
     }
 
@@ -95,30 +100,30 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
       `${selectedSlot.date}T${selectedSlot.end_time}:00`,
     );
 
-    dispatch(bookTimeslot(selectedSlot.id));
+    setIsBooking(true);
+    try {
+      await dispatch(
+        createAppointment({
+          user_id: user.id,
+          trainer_id: trainer.id,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          status: "scheduled",
+          timeslot_id: selectedSlot.id,
+          price: 65 + Math.floor(Math.random() * 30),
+          paid: false,
+        }),
+      ).unwrap();
 
-    dispatch(
-      addAppointment({
-        id: `a-${Date.now()}`,
-        user_id: user?.id || "u1",
-        user_name: user?.full_name || "Unknown",
-        trainer_id: trainer.id,
-        trainer_name: trainer.full_name,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        status: "scheduled",
-        created_at: new Date().toISOString(),
-        timeslot_id: selectedSlot.id,
-        price: 65 + Math.floor(Math.random() * 30),
-        paid: false,
-      }),
-    );
-
-    toast.success(`Session booked with ${trainer.full_name}!`);
-
-    onOpenChange(false);
-    setSelectedDate(null);
-    setSelectedSlotId(null);
+      toast.success(`Session booked with ${trainer.full_name}!`);
+      onOpenChange(false);
+      setSelectedDate(null);
+      setSelectedSlotId(null);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Failed to book session");
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   return (
@@ -126,7 +131,6 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
       open={open}
       onOpenChange={(o) => {
         onOpenChange(o);
-
         if (!o) {
           setSelectedDate(null);
           setSelectedSlotId(null);
@@ -136,7 +140,6 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
       <DialogContent className="glass border-border/50 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display">Book a Session</DialogTitle>
-
           <DialogDescription>Select an available timeslot</DialogDescription>
         </DialogHeader>
 
@@ -158,7 +161,6 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
             <p className="text-sm font-medium text-foreground">
               {trainer.full_name}
             </p>
-
             <p className="text-xs text-muted-foreground">
               {trainer.specialty?.label}
             </p>
@@ -166,10 +168,14 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
         </div>
 
         {/* Date selection */}
-        {dateGroups.length === 0 ? (
+        {slotsLoading ? (
+          <div className="py-8 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+            <p className="text-sm text-muted-foreground mt-2">Loading available slots...</p>
+          </div>
+        ) : dateGroups.length === 0 ? (
           <div className="py-8 text-center">
             <Calendar className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
-
             <p className="text-sm text-muted-foreground">
               No available timeslots
             </p>
@@ -198,7 +204,6 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
                     }}
                   >
                     {format(parseISO(date), "EEE, MMM d")}
-
                     <Badge
                       variant="secondary"
                       className="ml-1.5 text-[10px] h-4 px-1"
@@ -241,7 +246,6 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
                         <span className="font-medium">
                           {slot.start_time} – {slot.end_time}
                         </span>
-
                         {selectedSlotId === slot.id && (
                           <Check className="w-3 h-3 ml-1 absolute right-3 top-1/2 -translate-y-1/2" />
                         )}
@@ -259,14 +263,18 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
             variant="outline"
             className="flex-1"
             onClick={() => onOpenChange(false)}
+            disabled={isBooking}
           >
             Cancel
           </Button>
           <Button
             className="flex-1 gradient-primary text-primary-foreground"
             onClick={handleBook}
-            disabled={!selectedSlotId}
+            disabled={!selectedSlotId || isBooking}
           >
+            {isBooking ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : null}
             Confirm Booking
           </Button>
         </div>
