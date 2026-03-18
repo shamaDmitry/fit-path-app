@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   fetchUserAppointments,
@@ -7,7 +7,16 @@ import {
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const UserBookings = () => {
   const dispatch = useAppDispatch();
@@ -15,18 +24,47 @@ const UserBookings = () => {
   const user = useAppSelector((s) => s.auth.user);
   const { appointments, loading } = useAppSelector((s) => s.appointments);
 
+  // Filter and Sort states
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [paidFilter, setPaidFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [cancelId, setCancelId] = useState<string | null>(null);
+
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchUserAppointments(user.id));
     }
   }, [dispatch, user?.id]);
 
-  const [cancelId, setCancelId] = useState<string | null>(null);
+  const filteredAndSortedAppointments = useMemo(() => {
+    let result = [...appointments];
 
-  const myAppointments = [...appointments].sort(
-    (a, b) =>
-      new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
-  );
+    // Filter by status
+    if (statusFilter !== "all") {
+      result = result.filter((a) => a.status === statusFilter);
+    }
+
+    // Filter by payment
+    if (paidFilter !== "all") {
+      const isPaid = paidFilter === "paid";
+      result = result.filter((a) => a.paid === isPaid);
+    }
+
+    // Sort by date
+    result.sort((a, b) => {
+      const dateA = new Date(a.start_time).getTime();
+      const dateB = new Date(b.start_time).getTime();
+      return sortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+
+    return result;
+  }, [appointments, statusFilter, paidFilter, sortOrder]);
+
+  const handleClearFilters = () => {
+    setStatusFilter("all");
+    setPaidFilter("all");
+    setSortOrder("newest");
+  };
 
   const handleCancel = async () => {
     if (!cancelId) return;
@@ -56,31 +94,97 @@ const UserBookings = () => {
 
   return (
     <div className="mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">
-          My Bookings
-        </h1>
+      <div className="flex flex-col md:flex-row justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">
+            My Bookings
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            View and manage your appointments
+          </p>
+        </div>
 
-        <p className="text-sm text-muted-foreground mt-1">
-          View and manage your appointments
-        </p>
+        <div className="flex flex-wrap items-end gap-2">
+          {/* Status Filter */}
+          <div className="flex flex-col gap-1.5">
+            <Label>Status</Label>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32.5 h-9 bg-muted/30 border-border/50">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Payment Filter */}
+          <div className="flex flex-col gap-1.5">
+            <Label>Payment</Label>
+
+            <Select value={paidFilter} onValueChange={setPaidFilter}>
+              <SelectTrigger className="w-32.5 h-9 bg-muted/30 border-border/50">
+                <SelectValue placeholder="Payment" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All Payment</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+                <SelectItem value="unpaid">Unpaid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Date Sort */}
+          <div className="flex flex-col gap-1.5">
+            <Label>Sort By</Label>
+
+            <Select value={sortOrder} onValueChange={setSortOrder}>
+              <SelectTrigger className="w-32.5 h-9 bg-muted/30 border-border/50">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button variant="outline" onClick={() => handleClearFilters()}>
+            <Trash />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-3">
-        {myAppointments.map((apt, i) => (
-          <AppointmentCard
-            key={apt.id}
-            appointment={apt}
-            showTrainer
-            onCancel={(id) => setCancelId(id)}
-            delay={i * 0.05}
-          />
-        ))}
+        {filteredAndSortedAppointments.map((apt, i) => {
+          return (
+            <AppointmentCard
+              key={apt.id}
+              appointment={apt}
+              showTrainer
+              onCancel={(id) => setCancelId(id)}
+              delay={i * 0.05}
+            />
+          );
+        })}
       </div>
 
-      {myAppointments.length === 0 && (
-        <div className="glass rounded-xl p-12 text-center">
-          <p className="text-sm text-muted-foreground">No bookings yet</p>
+      {filteredAndSortedAppointments.length === 0 && !loading && (
+        <div className="glass rounded-xl p-12 text-center border border-dashed border-border/50">
+          <p className="text-sm text-muted-foreground mb-2">
+            No bookings found with these filters
+          </p>
+
+          <Button onClick={() => handleClearFilters()}>
+            Clear all filters
+          </Button>
         </div>
       )}
 

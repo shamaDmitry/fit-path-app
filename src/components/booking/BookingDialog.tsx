@@ -94,12 +94,21 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
     }
 
     const startTime = new Date(
-      `${selectedSlot.date}T${selectedSlot.start_time}:00`,
+      `${selectedSlot.date}T${selectedSlot.start_time}`,
     );
+    const endTime = new Date(`${selectedSlot.date}T${selectedSlot.end_time}`);
 
-    const endTime = new Date(
-      `${selectedSlot.date}T${selectedSlot.end_time}:00`,
-    );
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      console.error("Invalid date creation attempt:", {
+        date: selectedSlot.date,
+        start: selectedSlot.start_time,
+        end: selectedSlot.end_time,
+      });
+
+      toast.error("Invalid slot time selection");
+
+      return;
+    }
 
     setIsBooking(true);
 

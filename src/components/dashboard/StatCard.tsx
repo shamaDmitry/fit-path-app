@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "../ui/skeleton";
 
 interface StatCardProps {
+  loading?: boolean;
   title: string;
   value: string | number;
   subtitle?: string;
@@ -12,6 +14,7 @@ interface StatCardProps {
 }
 
 const StatCard = ({
+  loading,
   title,
   value,
   subtitle,
@@ -38,17 +41,36 @@ const StatCard = ({
               "bg-destructive/10 text-destructive": !trend.positive,
             })}
           >
-            {trend.value}
+            {trend.value || 0}
           </span>
         )}
       </div>
 
-      <p className="text-2xl font-display font-bold text-foreground">{value}</p>
+      {loading ? (
+        <Skeleton className="size-8 bg-secondary" />
+      ) : (
+        <p className="text-2xl font-display font-bold text-foreground">
+          {value}
+        </p>
+      )}
 
-      <p className="text-sm font-medium text-muted-foreground mt-1">{title}</p>
+      {loading ? (
+        <>
+          <Skeleton className="size-4 w-1/2 my-1 bg-secondary" />
+          <Skeleton className="size-4 w-3/4 my-1 bg-secondary" />
+        </>
+      ) : (
+        <>
+          <p className="text-sm font-medium text-muted-foreground mt-1">
+            {title}
+          </p>
 
-      {subtitle && (
-        <p className="text-sm text-muted-foreground/70 mt-0.5">{subtitle}</p>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground/70 mt-0.5">
+              {subtitle}
+            </p>
+          )}
+        </>
       )}
     </motion.div>
   );

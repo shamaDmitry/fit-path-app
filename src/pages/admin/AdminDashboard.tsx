@@ -16,22 +16,27 @@ import {
   DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
+import { fetchAdminAppointments } from "@/store/slices/appointmentsSlice";
 
 const AdminDashboard = () => {
   const dispatch = useAppDispatch();
 
-  const appointments = useAppSelector((s) => s.appointments.appointments);
-  const { trainers } = useAppSelector((s) => s.trainers);
+  const { appointments } = useAppSelector((s) => s.appointments);
+  const { trainers, loading } = useAppSelector((s) => s.trainers);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchTrainers());
+    dispatch(fetchAdminAppointments());
   }, [dispatch]);
+
+  console.log("appointments", appointments);
 
   const scheduled = appointments.filter((a) => a.status === "scheduled").length;
   const completed = appointments.filter((a) => a.status === "completed").length;
   const cancelled = appointments.filter((a) => a.status === "cancelled").length;
+
   const totalUsers = 3;
 
   const totalRevenue = appointments
@@ -79,6 +84,7 @@ const AdminDashboard = () => {
           value={appointments.length}
           icon={Calendar}
           delay={0}
+          loading={loading}
         />
 
         <StatCard
@@ -86,7 +92,7 @@ const AdminDashboard = () => {
           value={scheduled}
           icon={Activity}
           trend={{
-            value: `${Math.round((scheduled / appointments.length) * 100)}%`,
+            value: `${Math.round((scheduled / appointments.length) * 100) || 0}%`,
             positive: true,
           }}
           delay={0.05}
@@ -97,7 +103,7 @@ const AdminDashboard = () => {
           value={completed}
           icon={CheckCircle2}
           trend={{
-            value: `${Math.round((completed / appointments.length) * 100)}%`,
+            value: `${Math.round((completed / appointments.length) * 100) || 0}%`,
             positive: true,
           }}
           delay={0.1}
@@ -108,7 +114,7 @@ const AdminDashboard = () => {
           value={cancelled}
           icon={XCircle}
           trend={{
-            value: `${Math.round((cancelled / appointments.length) * 100)}%`,
+            value: `${Math.round((cancelled / appointments.length) * 100) || 0}%`,
             positive: false,
           }}
           delay={0.15}
@@ -126,6 +132,7 @@ const AdminDashboard = () => {
           value={trainers.length}
           icon={TrendingUp}
           delay={0.25}
+          loading={loading}
         />
 
         <StatCard
@@ -133,6 +140,7 @@ const AdminDashboard = () => {
           value={`$${totalRevenue}`}
           icon={DollarSign}
           delay={0.3}
+          loading={loading}
         />
       </div>
 

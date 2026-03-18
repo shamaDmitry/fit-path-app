@@ -1,7 +1,7 @@
 import { useParams, useNavigate, NavLink } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
-  // cancelAppointment,
+  fetchAppointment,
   updateAppointmentStatus,
 } from "@/store/slices/appointmentsSlice";
 
@@ -23,9 +23,9 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-// import { unbookTimeslot } from "@/store/slices/timeslotsSlice";
+import { getUserInitials } from "@/lib/utils";
 
 const statusStyles: Record<string, string> = {
   scheduled: "bg-info/10 text-info border-info/20",
@@ -39,13 +39,19 @@ const AppointmentDetail = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const appointments = useAppSelector((s) => s.appointments.appointments);
-  const trainers = useAppSelector((s) => s.trainers.trainers);
-  const user = useAppSelector((s) => s.auth.user);
+  const { currentAppointment: appointment } = useAppSelector(
+    (s) => s.appointments,
+  );
+  const { trainers } = useAppSelector((s) => s.trainers);
+  const { user } = useAppSelector((s) => s.auth);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchAppointment(id));
+    }
+  }, [dispatch, id]);
 
   const [confirmCancel, setConfirmCancel] = useState(false);
-
-  const appointment = appointments.find((a) => a.id === id);
 
   if (!appointment) {
     return (
@@ -68,10 +74,7 @@ const AppointmentDetail = () => {
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
 
-  const trainerInitials = appointment.trainer_name
-    .split(" ")
-    .map((n) => n[0])
-    .join("");
+  const trainerInitials = getUserInitials(appointment.trainer_name);
 
   const canCancel =
     appointment.status === "scheduled" &&
@@ -93,7 +96,9 @@ const AppointmentDetail = () => {
       await dispatch(
         updateAppointmentStatus({ id: appointment.id, status: "cancelled" }),
       ).unwrap();
+
       toast.success("Appointment cancelled");
+
       setConfirmCancel(false);
     } catch (error: unknown) {
       toast.error(
@@ -107,6 +112,7 @@ const AppointmentDetail = () => {
       await dispatch(
         updateAppointmentStatus({ id: appointment.id, status: "completed" }),
       ).unwrap();
+
       toast.success("Appointment marked as completed");
     } catch (error: unknown) {
       toast.error(
@@ -220,18 +226,19 @@ const AppointmentDetail = () => {
                   <p className="text-sm font-medium">
                     ${appointment.price || "—"}
                   </p>
+
                   {appointment.price &&
                     (appointment.paid ? (
                       <Badge
                         variant="outline"
-                        className="text-[10px] bg-success/10 text-success border-success/20"
+                        className="text-sm bg-success/10 text-success border-success/20"
                       >
                         Paid
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="text-[10px] bg-warning/10 text-warning border-warning/20"
+                        className="text-sm bg-warning/10 text-warning border-warning/20"
                       >
                         Unpaid
                       </Badge>

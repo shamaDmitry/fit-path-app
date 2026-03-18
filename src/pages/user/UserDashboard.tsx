@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { fetchUserAppointments, updateAppointmentStatus } from "@/store/slices/appointmentsSlice";
+import {
+  fetchUserAppointments,
+  updateAppointmentStatus,
+} from "@/store/slices/appointmentsSlice";
 import StatCard from "@/components/dashboard/StatCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { Calendar, CheckCircle2, Clock, Search, Loader2 } from "lucide-react";
@@ -14,7 +17,9 @@ const UserDashboard = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector((store) => store.auth.user);
-  const { appointments, loading } = useAppSelector((store) => store.appointments);
+  const { appointments, loading } = useAppSelector(
+    (store) => store.appointments,
+  );
 
   useEffect(() => {
     if (user?.id) {
@@ -24,20 +29,32 @@ const UserDashboard = () => {
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
-  const myAppointments = appointments
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  const myAppointments = [...appointments].sort(
+    (a, b) =>
+      new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
+  );
 
-  const scheduled = myAppointments.filter((appointment) => appointment.status === "scheduled").length;
-  const completed = myAppointments.filter((appointment) => appointment.status === "completed").length;
+  const scheduled = myAppointments.filter(
+    (appointment) => appointment.status === "scheduled",
+  ).length;
+
+  const completed = myAppointments.filter(
+    (appointment) => appointment.status === "completed",
+  ).length;
 
   const handleCancel = async () => {
     if (!cancelId) return;
 
     try {
-      await dispatch(updateAppointmentStatus({ id: cancelId, status: "cancelled" })).unwrap();
+      await dispatch(
+        updateAppointmentStatus({ id: cancelId, status: "cancelled" }),
+      ).unwrap();
+
       toast.success("Appointment cancelled");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to cancel appointment");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to cancel appointment",
+      );
     } finally {
       setCancelId(null);
     }
@@ -45,7 +62,7 @@ const UserDashboard = () => {
 
   if (loading && appointments.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
