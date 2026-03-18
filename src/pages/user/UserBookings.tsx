@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { fetchUserAppointments, updateAppointmentStatus } from "@/store/slices/appointmentsSlice";
+import {
+  fetchUserAppointments,
+  updateAppointmentStatus,
+} from "@/store/slices/appointmentsSlice";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toast } from "sonner";
@@ -20,17 +23,24 @@ const UserBookings = () => {
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
-  const myAppointments = [...appointments]
-    .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+  const myAppointments = [...appointments].sort(
+    (a, b) =>
+      new Date(b.start_time).getTime() - new Date(a.start_time).getTime(),
+  );
 
   const handleCancel = async () => {
     if (!cancelId) return;
 
     try {
-      await dispatch(updateAppointmentStatus({ id: cancelId, status: "cancelled" })).unwrap();
+      await dispatch(
+        updateAppointmentStatus({ id: cancelId, status: "cancelled" }),
+      ).unwrap();
+
       toast.success("Appointment cancelled");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to cancel appointment");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to cancel appointment",
+      );
     } finally {
       setCancelId(null);
     }
@@ -50,6 +60,7 @@ const UserBookings = () => {
         <h1 className="text-2xl font-display font-bold text-foreground">
           My Bookings
         </h1>
+
         <p className="text-sm text-muted-foreground mt-1">
           View and manage your appointments
         </p>

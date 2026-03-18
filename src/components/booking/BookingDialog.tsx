@@ -61,6 +61,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
 
     availableSlots.forEach((ts) => {
       if (!groups[ts.date]) groups[ts.date] = [];
+
       groups[ts.date].push(ts);
     });
 
@@ -101,6 +102,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
     );
 
     setIsBooking(true);
+
     try {
       await dispatch(
         createAppointment({
@@ -116,6 +118,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
       ).unwrap();
 
       toast.success(`Session booked with ${trainer.full_name}!`);
+
       onOpenChange(false);
       setSelectedDate(null);
       setSelectedSlotId(null);
@@ -131,9 +134,10 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => {
-        onOpenChange(o);
-        if (!o) {
+      onOpenChange={(open) => {
+        onOpenChange(open);
+
+        if (!open) {
           setSelectedDate(null);
           setSelectedSlotId(null);
         }
@@ -142,6 +146,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
       <DialogContent className="glass border-border/50 sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-display">Book a Session</DialogTitle>
+
           <DialogDescription>Select an available timeslot</DialogDescription>
         </DialogHeader>
 
@@ -163,6 +168,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
             <p className="text-sm font-medium text-foreground">
               {trainer.full_name}
             </p>
+
             <p className="text-xs text-muted-foreground">
               {trainer.specialty?.label}
             </p>
@@ -173,6 +179,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
         {slotsLoading ? (
           <div className="py-8 text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+
             <p className="text-sm text-muted-foreground mt-2">
               Loading available slots...
             </p>
@@ -180,6 +187,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
         ) : dateGroups.length === 0 ? (
           <div className="py-8 text-center">
             <Calendar className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+
             <p className="text-sm text-muted-foreground">
               No available timeslots
             </p>
@@ -208,6 +216,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
                     }}
                   >
                     {format(parseISO(date), "EEE, MMM d")}
+
                     <Badge
                       variant="secondary"
                       className="ml-1.5 text-[10px] h-4 px-1"
@@ -240,7 +249,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
                           selectedSlotId === slot.id ? "default" : "outline"
                         }
                         size="sm"
-                        className={cn("text-xs relative", {
+                        className={cn("text-xs relative px-5", {
                           "gradient-primary text-primary-foreground":
                             selectedSlotId === slot.id,
                           "border-border/50": selectedSlotId !== slot.id,
@@ -250,9 +259,25 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
                         <span className="font-medium">
                           {slot.start_time} – {slot.end_time}
                         </span>
-                        {selectedSlotId === slot.id && (
-                          <Check className="w-3 h-3 ml-1 absolute right-3 top-1/2 -translate-y-1/2" />
-                        )}
+
+                        <AnimatePresence>
+                          {selectedSlotId === slot.id && (
+                            <motion.span
+                              key="check"
+                              initial={{ scale: 0, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0, opacity: 0 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 400,
+                                damping: 20,
+                              }}
+                              className="flex items-center absolute -top-1 -right-1 bg-accent rounded-full p-0.5"
+                            >
+                              <Check className="w-3 h-3" />
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
                       </Button>
                     ))}
                   </div>
@@ -271,6 +296,7 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
           >
             Cancel
           </Button>
+
           <Button
             className="flex-1 gradient-primary text-primary-foreground"
             onClick={handleBook}

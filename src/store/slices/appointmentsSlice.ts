@@ -8,11 +8,22 @@ interface AppointmentsState {
   error: string | null;
 }
 
+type AppointmentWithRelations = Omit<Appointment, "trainer_name" | "user_name"> & {
+  trainer?: { full_name: string } | null;
+  user?: { full_name: string } | null;
+};
+
 const initialState: AppointmentsState = {
   appointments: [],
   loading: false,
   error: null,
 };
+
+const toAppointment = (appointment: AppointmentWithRelations): Appointment => ({
+  ...appointment,
+  trainer_name: appointment.trainer?.full_name || "Unknown Trainer",
+  user_name: appointment.user?.full_name || "Unknown User",
+});
 
 export const fetchUserAppointments = createAsyncThunk(
   "appointments/fetchUserAppointments",
@@ -28,12 +39,8 @@ export const fetchUserAppointments = createAsyncThunk(
       .order("start_time", { ascending: true });
 
     if (error) return rejectWithValue(error.message);
-    
-    return data.map((a: any) => ({
-      ...a,
-      trainer_name: a.trainer?.full_name || "Unknown Trainer",
-      user_name: a.user?.full_name || "Unknown User"
-    })) as Appointment[];
+
+    return ((data ?? []) as AppointmentWithRelations[]).map(toAppointment);
   }
 );
 
@@ -51,12 +58,8 @@ export const fetchTrainerAppointments = createAsyncThunk(
       .order("start_time", { ascending: true });
 
     if (error) return rejectWithValue(error.message);
-    
-    return data.map((a: any) => ({
-      ...a,
-      trainer_name: a.trainer?.full_name || "Unknown Trainer",
-      user_name: a.user?.full_name || "Unknown User"
-    })) as Appointment[];
+
+    return ((data ?? []) as AppointmentWithRelations[]).map(toAppointment);
   }
 );
 
@@ -74,12 +77,8 @@ export const createAppointment = createAsyncThunk(
       .single();
 
     if (error) return rejectWithValue(error.message);
-    
-    return {
-      ...data,
-      trainer_name: data.trainer?.full_name || "Unknown Trainer",
-      user_name: data.user?.full_name || "Unknown User"
-    } as Appointment;
+
+    return toAppointment(data as AppointmentWithRelations);
   }
 );
 
@@ -98,12 +97,8 @@ export const updateAppointmentStatus = createAsyncThunk(
       .single();
 
     if (error) return rejectWithValue(error.message);
-    
-    return {
-      ...data,
-      trainer_name: data.trainer?.full_name || "Unknown Trainer",
-      user_name: data.user?.full_name || "Unknown User"
-    } as Appointment;
+
+    return toAppointment(data as AppointmentWithRelations);
   }
 );
 
