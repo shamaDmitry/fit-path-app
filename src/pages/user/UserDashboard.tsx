@@ -6,7 +6,14 @@ import {
 } from "@/store/slices/appointmentsSlice";
 import StatCard from "@/components/dashboard/StatCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
-import { Calendar, CheckCircle2, Clock, Search, Loader2 } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Search,
+  Loader2,
+  XCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -34,12 +41,18 @@ const UserDashboard = () => {
       new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
   );
 
+  console.log("myAppointments", myAppointments);
+
   const scheduled = myAppointments.filter(
     (appointment) => appointment.status === "scheduled",
   ).length;
 
   const completed = myAppointments.filter(
     (appointment) => appointment.status === "completed",
+  ).length;
+
+  const cancelled = myAppointments.filter(
+    (appointment) => appointment.status === "cancelled",
   ).length;
 
   const handleCancel = async () => {
@@ -90,7 +103,7 @@ const UserDashboard = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Sessions"
           value={myAppointments.length}
@@ -99,6 +112,7 @@ const UserDashboard = () => {
         />
 
         <StatCard
+          color="bg-info/10 text-info border-info/20"
           title="Upcoming"
           value={scheduled}
           icon={Clock}
@@ -106,10 +120,19 @@ const UserDashboard = () => {
         />
 
         <StatCard
+          color="bg-success/10 text-success border-success/20"
           title="Completed"
           value={completed}
           icon={CheckCircle2}
           delay={0.1}
+        />
+
+        <StatCard
+          color="bg-destructive/10 text-destructive border-destructive/20"
+          title="Cancelled"
+          value={cancelled}
+          icon={XCircle}
+          delay={0.15}
         />
       </div>
 
@@ -142,6 +165,7 @@ const UserDashboard = () => {
                   key={apt.id}
                   appointment={apt}
                   showTrainer
+                  showUser
                   onCancel={(id) => setCancelId(id)}
                   delay={i * 0.05}
                 />

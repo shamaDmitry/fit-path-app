@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { trainerColors, type Appointment } from "@/data/mockData";
+import { type Appointment } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, User, X, DollarSign } from "lucide-react";
@@ -27,10 +27,12 @@ const AppointmentCard = ({
   onCancel,
   delay = 0,
 }: AppointmentCardProps) => {
+  console.log("appointment", appointment);
+
   const navigate = useNavigate();
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
-  const trainerColor = trainerColors[appointment.trainer_id] || "158 64% 32%";
+  const trainerColor = appointment.trainer?.color || "158 64% 32%";
 
   return (
     <motion.div
@@ -67,7 +69,6 @@ const AppointmentCard = ({
           {format(start, "dd")}
         </span>
       </div>
-
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
@@ -125,7 +126,6 @@ const AppointmentCard = ({
           )}
         </div>
       </div>
-
       {/* Actions */}
       <div
         className="flex items-center gap-1"

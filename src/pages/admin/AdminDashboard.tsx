@@ -31,8 +31,6 @@ const AdminDashboard = () => {
     dispatch(fetchAdminAppointments());
   }, [dispatch]);
 
-  console.log("appointments", appointments);
-
   const scheduled = appointments.filter((a) => a.status === "scheduled").length;
   const completed = appointments.filter((a) => a.status === "completed").length;
   const cancelled = appointments.filter((a) => a.status === "cancelled").length;

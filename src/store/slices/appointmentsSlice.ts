@@ -51,15 +51,11 @@ export const fetchUserAppointments = createAsyncThunk(
       .from("appointments")
       .select(`
         *,
-        trainer:trainers(full_name),
+        trainer:trainers(full_name,color),
         user:profiles!user_id(full_name)
       `)
       .eq("user_id", userId)
       .order("start_time", { ascending: true });
-
-
-      console.log({userId, data, error});
-      
 
     if (error) return rejectWithValue(error.message);
 
@@ -74,15 +70,11 @@ export const fetchAppointment = createAsyncThunk(
       .from("appointments")
       .select(`
         *,
-        trainer:trainers(full_name),
+        trainer:trainers(full_name,color),
         user:profiles!user_id(full_name)
       `)
       .eq("id", appointmentId)
       .single();
-
-
-      console.log({appointmentId, data, error});
-      
 
     if (error) return rejectWithValue(error.message);
 

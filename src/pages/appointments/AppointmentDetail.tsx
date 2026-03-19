@@ -5,7 +5,6 @@ import {
   updateAppointmentStatus,
 } from "@/store/slices/appointmentsSlice";
 
-import { trainerColors } from "@/data/mockData";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,8 +68,7 @@ const AppointmentDetail = () => {
     return trainer.id === appointment.trainer_id;
   });
 
-  const color = trainerColors[appointment.trainer_id] || "158 64% 32%";
-
+  const color = appointment.trainer?.color || "158 64% 32%";
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
 

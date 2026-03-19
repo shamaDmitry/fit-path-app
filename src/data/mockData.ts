@@ -43,6 +43,7 @@ export interface Appointment {
   notes?: string;
   price?: number;
   paid?: boolean;
+  trainer?: Trainer;
 }
 
 export interface User {

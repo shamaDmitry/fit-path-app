@@ -64,8 +64,6 @@ const EditTrainer = () => {
 
   useEffect(() => {
     if (trainer) {
-      console.log("trainer", trainer);
-
       setName(trainer.full_name || "");
       setBio(trainer.bio || "");
       setSpecialtyId(trainer.specialty_id || "");

@@ -11,6 +11,7 @@ interface StatCardProps {
   icon: LucideIcon;
   trend?: { value: string; positive: boolean };
   delay?: number;
+  color?: string;
 }
 
 const StatCard = ({
@@ -21,6 +22,7 @@ const StatCard = ({
   icon: Icon,
   trend,
   delay = 0,
+  color,
 }: StatCardProps) => {
   return (
     <motion.div
@@ -30,8 +32,13 @@ const StatCard = ({
       className="stat-card"
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Icon className="w-5 h-5 text-primary" />
+        <div
+          className={cn(
+            "w-10 h-10 rounded-lg bg-secondary/90 text-secondary-foreground border border-secondary flex items-center justify-center",
+            color,
+          )}
+        >
+          <Icon className="w-5 h-5" />
         </div>
 
         {trend && (
@@ -61,7 +68,12 @@ const StatCard = ({
         </>
       ) : (
         <>
-          <p className="text-sm font-medium text-muted-foreground mt-1">
+          <p
+            className={cn(
+              "text-sm font-medium mt-1 p-1 px-2 rounded-md inline-block bg-secondary text-secondary-foreground",
+              color,
+            )}
+          >
             {title}
           </p>
 
