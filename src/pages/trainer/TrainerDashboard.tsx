@@ -4,9 +4,7 @@ import {
   fetchTrainerAppointments,
   updateAppointmentStatus,
 } from "@/store/slices/appointmentsSlice";
-import {
-  fetchTrainerTimeslots,
-} from "@/store/slices/timeslotsSlice";
+import { fetchTrainerTimeslots } from "@/store/slices/timeslotsSlice";
 import StatCard from "@/components/dashboard/StatCard";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { Calendar, CheckCircle2, Clock, XCircle } from "lucide-react";
@@ -22,8 +20,12 @@ const TrainerDashboard = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { appointments, loading: appointmentsLoading } = useAppSelector((s) => s.appointments);
-  const { timeslots, loading: timeslotsLoading } = useAppSelector((s) => s.timeslots);
+  const { appointments, loading: appointmentsLoading } = useAppSelector(
+    (s) => s.appointments,
+  );
+  const { timeslots, loading: timeslotsLoading } = useAppSelector(
+    (s) => s.timeslots,
+  );
   const user = useAppSelector((s) => s.auth.user);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
@@ -57,10 +59,14 @@ const TrainerDashboard = () => {
     if (!cancelId) return;
 
     try {
-      await dispatch(updateAppointmentStatus({ id: cancelId, status: "cancelled" })).unwrap();
+      await dispatch(
+        updateAppointmentStatus({ id: cancelId, status: "cancelled" }),
+      ).unwrap();
       toast.success("Appointment cancelled");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to cancel appointment");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to cancel appointment",
+      );
     } finally {
       setCancelId(null);
     }
@@ -70,10 +76,16 @@ const TrainerDashboard = () => {
     if (!completeId) return;
 
     try {
-      await dispatch(updateAppointmentStatus({ id: completeId, status: "completed" })).unwrap();
+      await dispatch(
+        updateAppointmentStatus({ id: completeId, status: "completed" }),
+      ).unwrap();
       toast.success("Appointment marked as completed");
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Failed to complete appointment");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to complete appointment",
+      );
     } finally {
       setCompleteId(null);
     }
@@ -83,7 +95,7 @@ const TrainerDashboard = () => {
 
   return (
     <div className="mx-auto space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">
             Welcome, {user?.full_name}
@@ -102,7 +114,7 @@ const TrainerDashboard = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {loading ? (
           new Array(4)
             .fill(0)
@@ -114,6 +126,7 @@ const TrainerDashboard = () => {
               value={scheduled.length}
               icon={Clock}
               delay={0}
+              color="bg-info/10 text-info border-info/20"
             />
 
             <StatCard
@@ -121,6 +134,7 @@ const TrainerDashboard = () => {
               value={completedCount}
               icon={CheckCircle2}
               delay={0.05}
+              color="bg-success/10 text-success border-success/20"
             />
 
             <StatCard
@@ -128,6 +142,7 @@ const TrainerDashboard = () => {
               value={cancelledCount}
               icon={XCircle}
               delay={0.1}
+              color="bg-destructive/10 text-destructive border-destructive/20"
             />
 
             <StatCard
@@ -135,6 +150,7 @@ const TrainerDashboard = () => {
               value={availableSlotsCount}
               icon={Calendar}
               delay={0.15}
+              color="bg-accent/10 text-accent border-accent/20"
             />
           </>
         )}
