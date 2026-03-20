@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { type Appointment } from "@/data/mockData";
 import { supabase } from "@/lib/supabase";
 
@@ -9,10 +9,12 @@ interface AppointmentsState {
   error: string | null;
 }
 
-type AppointmentWithRelations = Omit<Appointment, "trainer_name" | "user_name"> & {
-  trainer?: { full_name: string } | null;
-  user?: { full_name: string } | null;
-};
+type AppointmentWithRelations =
+  & Omit<Appointment, "trainer_name" | "user_name">
+  & {
+    trainer?: { full_name: string } | null;
+    user?: { full_name: string } | null;
+  };
 
 const initialState: AppointmentsState = {
   currentAppointment: null,
@@ -39,10 +41,10 @@ export const fetchAdminAppointments = createAsyncThunk(
       `)
       .order("start_time", { ascending: true });
 
-      if (error) return rejectWithValue(error.message);
+    if (error) return rejectWithValue(error.message);
 
     return ((data ?? []) as AppointmentWithRelations[]).map(toAppointment);
-  }
+  },
 );
 export const fetchUserAppointments = createAsyncThunk(
   "appointments/fetchUserAppointments",
@@ -60,7 +62,7 @@ export const fetchUserAppointments = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
 
     return ((data ?? []) as AppointmentWithRelations[]).map(toAppointment);
-  }
+  },
 );
 
 export const fetchAppointment = createAsyncThunk(
@@ -79,9 +81,24 @@ export const fetchAppointment = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
 
     return toAppointment(data as AppointmentWithRelations);
-  }
+  },
 );
 
+export const payAppointment = createAsyncThunk(
+  "appointments/payAppointment",
+  async (_, { rejectWithValue }) => {
+    const { data, error } = await supabase.functions.invoke(
+      "create-checkout",
+      {},
+    );
+
+    console.log("payAppointment", { data, error });
+
+    if (error) return rejectWithValue(error.message);
+
+    return toAppointment(data as AppointmentWithRelations);
+  },
+);
 
 export const fetchTrainerAppointments = createAsyncThunk(
   "appointments/fetchTrainerAppointments",
@@ -99,12 +116,18 @@ export const fetchTrainerAppointments = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
 
     return ((data ?? []) as AppointmentWithRelations[]).map(toAppointment);
-  }
+  },
 );
 
 export const createAppointment = createAsyncThunk(
   "appointments/createAppointment",
-  async (appointment: Omit<Appointment, "id" | "created_at" | "trainer_name" | "user_name">, { rejectWithValue }) => {
+  async (
+    appointment: Omit<
+      Appointment,
+      "id" | "created_at" | "trainer_name" | "user_name"
+    >,
+    { rejectWithValue },
+  ) => {
     const { data, error } = await supabase
       .from("appointments")
       .insert([appointment])
@@ -118,12 +141,15 @@ export const createAppointment = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
 
     return toAppointment(data as AppointmentWithRelations);
-  }
+  },
 );
 
 export const updateAppointmentStatus = createAsyncThunk(
   "appointments/updateAppointmentStatus",
-  async ({ id, status }: { id: string; status: Appointment["status"] }, { rejectWithValue }) => {
+  async (
+    { id, status }: { id: string; status: Appointment["status"] },
+    { rejectWithValue },
+  ) => {
     const { data, error } = await supabase
       .from("appointments")
       .update({ status })
@@ -138,7 +164,7 @@ export const updateAppointmentStatus = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
 
     return toAppointment(data as AppointmentWithRelations);
-  }
+  },
 );
 
 const appointmentsSlice = createSlice({
@@ -159,7 +185,6 @@ const appointmentsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
       .addCase(fetchAdminAppointments.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -172,7 +197,6 @@ const appointmentsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
       .addCase(fetchUserAppointments.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -185,18 +209,17 @@ const appointmentsSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
       .addCase(fetchTrainerAppointments.fulfilled, (state, action) => {
         state.loading = false;
         state.appointments = action.payload;
       })
-
       .addCase(createAppointment.fulfilled, (state, action) => {
         state.appointments.push(action.payload);
       })
-
       .addCase(updateAppointmentStatus.fulfilled, (state, action) => {
-        const index = state.appointments.findIndex((a) => a.id === action.payload.id);
+        const index = state.appointments.findIndex((a) =>
+          a.id === action.payload.id
+        );
         if (index !== -1) {
           state.appointments[index] = action.payload;
         }

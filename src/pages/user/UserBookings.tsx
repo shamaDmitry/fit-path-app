@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
+import { useSearchParams } from "react-router";
 import {
   fetchUserAppointments,
   updateAppointmentStatus,
@@ -20,9 +21,45 @@ import { Label } from "@/components/ui/label";
 
 const UserBookings = () => {
   const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const toastShown = useRef(false);
 
   const user = useAppSelector((s) => s.auth.user);
   const { appointments, loading } = useAppSelector((s) => s.appointments);
+
+  // Handle payment status from URL
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (!status || toastShown.current) return;
+
+    if (status === "success") {
+      toastShown.current = true;
+      toast.success("Payment successful! Your appointment is now confirmed.");
+
+      // Clear search params
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("status");
+      newParams.delete("session_id");
+      setSearchParams(newParams, { replace: true });
+
+      if (user?.id) {
+        dispatch(fetchUserAppointments(user.id));
+      }
+    } else if (status === "cancelled") {
+      toastShown.current = true;
+      toast.warning("Payment was cancelled.");
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("status");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, dispatch, user?.id]);
+
+  // Reset the guard when the path changes or search params are cleared
+  useEffect(() => {
+    if (!searchParams.get("status")) {
+      toastShown.current = false;
+    }
+  }, [searchParams]);
 
   // Filter and Sort states
   const [statusFilter, setStatusFilter] = useState("all");
@@ -104,13 +141,13 @@ const UserBookings = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-wrap items-end gap-4">
           {/* Status Filter */}
           <div className="flex flex-col gap-1.5">
             <Label>Status</Label>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32.5 h-9 bg-muted/30 border-border/50">
+              <SelectTrigger className="w-32.5 h-9 bg-secondary border-border/50">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
 
@@ -128,7 +165,7 @@ const UserBookings = () => {
             <Label>Payment</Label>
 
             <Select value={paidFilter} onValueChange={setPaidFilter}>
-              <SelectTrigger className="w-32.5 h-9 bg-muted/30 border-border/50">
+              <SelectTrigger className="w-32.5 h-9 bg-secondary border-border/50">
                 <SelectValue placeholder="Payment" />
               </SelectTrigger>
 
@@ -145,7 +182,7 @@ const UserBookings = () => {
             <Label>Sort By</Label>
 
             <Select value={sortOrder} onValueChange={setSortOrder}>
-              <SelectTrigger className="w-32.5 h-9 bg-muted/30 border-border/50">
+              <SelectTrigger className="w-32.5 h-9 bg-secondary border-border/50">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
 

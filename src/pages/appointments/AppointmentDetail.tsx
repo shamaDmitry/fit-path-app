@@ -1,4 +1,4 @@
-import { useParams, useNavigate, NavLink } from "react-router";
+import { useParams, useNavigate, NavLink, useSearchParams } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   fetchAppointment,
@@ -19,12 +19,14 @@ import {
   CheckCircle2,
   XCircle,
   CreditCard,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { getUserInitials } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
 
 const statusStyles: Record<string, string> = {
   scheduled: "bg-info/10 text-info border-info/20",
@@ -34,6 +36,8 @@ const statusStyles: Record<string, string> = {
 
 const AppointmentDetail = () => {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const toastShown = useRef(false);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -44,13 +48,43 @@ const AppointmentDetail = () => {
   const { trainers } = useAppSelector((s) => s.trainers);
   const { user } = useAppSelector((s) => s.auth);
 
+  const [isPaying, setIsPaying] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
+
+  // Handle payment status from URL
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (!status || toastShown.current) return;
+
+    if (status === "success") {
+      toastShown.current = true;
+      toast.success("Payment successful! Your appointment is now confirmed.");
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("status");
+      newParams.delete("session_id");
+      setSearchParams(newParams, { replace: true });
+      if (id) dispatch(fetchAppointment(id));
+    } else if (status === "cancelled") {
+      toastShown.current = true;
+      toast.warning("Payment was cancelled.");
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("status");
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, dispatch, id]);
+
+  // Reset the guard when the path changes or search params are cleared
+  useEffect(() => {
+    if (!searchParams.get("status")) {
+      toastShown.current = false;
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (id) {
       dispatch(fetchAppointment(id));
     }
   }, [dispatch, id]);
-
-  const [confirmCancel, setConfirmCancel] = useState(false);
 
   if (!appointment) {
     return (
@@ -121,8 +155,33 @@ const AppointmentDetail = () => {
     }
   };
 
-  const handlePay = () => {
-    toast.success("Payment simulated — Stripe integration coming soon!");
+  const handlePay = async () => {
+    setIsPaying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "create-checkout",
+        {
+          body: {
+            appointmentId: appointment.id,
+            redirectPath: window.location.pathname,
+          },
+        },
+      );
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Failed to create checkout session");
+      }
+    } catch (error: unknown) {
+      console.error("Payment error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to initialize payment",
+      );
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   return (
@@ -263,9 +322,14 @@ const AppointmentDetail = () => {
                   size="sm"
                   className="gradient-primary text-primary-foreground"
                   onClick={handlePay}
+                  disabled={isPaying}
                 >
-                  <CreditCard className="w-4 h-4 mr-2" /> Pay $
-                  {appointment.price}
+                  {isPaying ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <CreditCard className="w-4 h-4 mr-2" />
+                  )}
+                  Pay ${appointment.price}
                 </Button>
               )}
 

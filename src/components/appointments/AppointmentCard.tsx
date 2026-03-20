@@ -2,9 +2,12 @@ import { motion } from "framer-motion";
 import { type Appointment } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, User, X, DollarSign } from "lucide-react";
+import { Clock, User, X, DollarSign, CreditCard, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router";
+import { supabase } from "@/lib/supabase";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -27,12 +30,38 @@ const AppointmentCard = ({
   onCancel,
   delay = 0,
 }: AppointmentCardProps) => {
-  console.log("appointment", appointment);
-
   const navigate = useNavigate();
+  const [isPaying, setIsPaying] = useState(false);
+
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
   const trainerColor = appointment.trainer?.color || "158 64% 32%";
+
+  const handlePay = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsPaying(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { 
+          appointmentId: appointment.id,
+          redirectPath: window.location.pathname 
+        },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Failed to create checkout session");
+      }
+    } catch (err: unknown) {
+      console.error("Payment error:", err);
+      toast.error(err instanceof Error ? err.message : "Payment failed to initialize");
+    } finally {
+      setIsPaying(false);
+    }
+  };
 
   return (
     <motion.div
@@ -69,6 +98,7 @@ const AppointmentCard = ({
           {format(start, "dd")}
         </span>
       </div>
+
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-2">
@@ -126,11 +156,29 @@ const AppointmentCard = ({
           )}
         </div>
       </div>
+
       {/* Actions */}
       <div
         className="flex items-center gap-1"
         onClick={(e) => e.stopPropagation()}
       >
+        {!appointment.paid && appointment.status === "scheduled" && (
+          <Button
+            size="sm"
+            variant="default"
+            className="h-8 gap-1.5"
+            onClick={handlePay}
+            disabled={isPaying}
+          >
+            {isPaying ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CreditCard className="h-3.5 w-3.5" />
+            )}
+            Pay Now
+          </Button>
+        )}
+
         {onCancel && appointment.status === "scheduled" && (
           <Button
             variant="ghost"
