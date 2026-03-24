@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { type Trainer } from "@/data/mockData";
+import { type Trainer } from "@/types";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { createAppointment } from "@/store/slices/appointmentsSlice";
 import { fetchPublicTimeslots } from "@/store/slices/timeslotsSlice";

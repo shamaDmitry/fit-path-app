@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getUserInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import type { User } from "@/data/mockData";
+import type { User } from "@/types";
 import { NavLink, useNavigate } from "react-router";
 
 interface FooterMenuDesktop {

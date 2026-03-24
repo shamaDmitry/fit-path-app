@@ -4,7 +4,7 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { supabase } from "@/lib/supabase";
-import type { User } from "@/data/mockData";
+import type { User } from "@/types";
 import { toast } from "sonner";
 import type { Session } from "@supabase/supabase-js";
 
@@ -14,6 +14,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  usersCount: number;
 }
 
 const initialState: AuthState = {
@@ -22,7 +23,29 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isLoading: true,
   error: null,
+  usersCount: 0,
 };
+
+export const fetchUserCount = createAsyncThunk(
+  "auth/fetchUserCount",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { count, error } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
+
+      if (error) throw error;
+
+      return count || 0;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+
+      return rejectWithValue("An unknown error occurred");
+    }
+  },
+);
 
 export const fetchProfile = createAsyncThunk(
   "auth/fetchProfile",
@@ -257,18 +280,6 @@ const authSlice = createSlice({
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
     },
-    // Keep legacy login/logout for now to avoid breaking other components during migration
-    login(state, action: PayloadAction<User>) {
-      state.user = action.payload;
-      state.isAuthenticated = true;
-      state.isLoading = false;
-    },
-    logout(state) {
-      state.user = null;
-      state.session = null;
-      state.isAuthenticated = false;
-      state.isLoading = false;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -298,6 +309,9 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.rejected, (state) => {
         state.isLoading = false;
+      })
+      .addCase(fetchUserCount.fulfilled, (state, action) => {
+        state.usersCount = action.payload;
       });
   },
 });
@@ -305,8 +319,6 @@ const authSlice = createSlice({
 export const {
   setSession,
   setLoading,
-  login,
-  logout: logoutAction,
 } = authSlice.actions;
 
 export default authSlice.reducer;

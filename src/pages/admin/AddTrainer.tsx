@@ -18,7 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
-import { trainerColors } from "@/data/mockData";
+import { trainerColors } from "@/lib/constants";
 import { cn, getEdgeFunctionErrorMessage } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 import PasswordInput from "@/components/shared/PasswordInput";
@@ -35,13 +35,13 @@ const AddTrainer = () => {
   const { specialties } = useAppSelector((s) => s.trainers);
 
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState("Test Trainer");
-  const [bio, setBio] = useState("Test Trainer bio");
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
   const [specialtyId, setSpecialtyId] = useState("");
-  const [experience, setExperience] = useState("5");
-  const [phone, setPhone] = useState("+380994567896");
-  const [email, setEmail] = useState("test@test.com");
-  const [password, setPassword] = useState("test1234");
+  const [experience, setExperience] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [selectedColor, setSelectedColor] = useState(colorOptions[4].value);
   const [certInput, setCertInput] = useState("");
   const [certifications, setCertifications] = useState<string[]>([]);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router";
 import { motion } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/store";
@@ -27,7 +27,7 @@ const Signup = () => {
   const [fullName, setFullName] = useState("Test User");
   const [showPass, setShowPass] = useState(false);
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: SyntheticEvent) => {
     e.preventDefault();
 
     const result = await dispatch(signUp({ email, password, fullName }));

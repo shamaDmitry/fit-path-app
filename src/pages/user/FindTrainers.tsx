@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
-import type { Trainer } from "@/data/mockData";
+import type { Trainer } from "@/types";
 import TrainerCard from "@/components/trainers/TrainerCard";
 
 const sortOptions = [

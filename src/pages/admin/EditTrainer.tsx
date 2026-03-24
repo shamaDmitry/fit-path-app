@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ArrowLeft, Check, Plus, X, Loader2 } from "lucide-react";
-import { trainerColors } from "@/data/mockData";
+import { trainerColors } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const colorOptions = Object.entries(trainerColors).map(([key, value]) => ({

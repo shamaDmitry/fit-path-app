@@ -41,8 +41,6 @@ const UserDashboard = () => {
       new Date(a.start_time).getTime() - new Date(b.start_time).getTime(),
   );
 
-  console.log("myAppointments", myAppointments);
-
   const scheduled = myAppointments.filter(
     (appointment) => appointment.status === "scheduled",
   ).length;

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { type Trainer, type Specialty } from "@/data/mockData";
+import { type Trainer, type Specialty } from "@/types";
 import { supabase } from "@/lib/supabase";
 
 interface TrainersState {
@@ -204,18 +204,7 @@ const trainersSlice = createSlice({
       })
       .addCase(fetchTrainer.fulfilled, (state, action) => {
         state.currentTrainer = action.payload;
-
-        
-
         state.loading = false;
-
-
-        // const index = state.trainers.findIndex((t) => t.id === action.payload.id);
-        // if (index !== -1) {
-        //   state.trainers[index] = action.payload;
-        // } else {
-        //   state.trainers.push(action.payload);
-        // }
       })
       .addCase(fetchTrainer.rejected, (state, action) => {
         state.loading = false;

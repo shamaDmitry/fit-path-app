@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { type Timeslot } from "@/data/mockData";
+import { type Timeslot } from "@/types";
 import { supabase } from "@/lib/supabase";
 
 interface TimeslotsState {

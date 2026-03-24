@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { type Trainer } from "@/data/mockData";
+import { type Trainer } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

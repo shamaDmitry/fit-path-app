@@ -17,25 +17,28 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchAdminAppointments } from "@/store/slices/appointmentsSlice";
+import { fetchUserCount } from "@/store/slices/authSlice";
 
 const AdminDashboard = () => {
   const dispatch = useAppDispatch();
 
   const { appointments } = useAppSelector((s) => s.appointments);
   const { trainers, loading } = useAppSelector((s) => s.trainers);
+  const { usersCount } = useAppSelector((s) => s.auth);
 
   const [cancelId, setCancelId] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchTrainers());
     dispatch(fetchAdminAppointments());
+    dispatch(fetchUserCount());
   }, [dispatch]);
 
   const scheduled = appointments.filter((a) => a.status === "scheduled").length;
   const completed = appointments.filter((a) => a.status === "completed").length;
   const cancelled = appointments.filter((a) => a.status === "cancelled").length;
 
-  const totalUsers = 3;
+  const totalUsers = usersCount;
 
   const totalRevenue = appointments
     .filter((a) => a.paid && a.price)

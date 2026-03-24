@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { type Appointment } from "@/data/mockData";
+import { type Appointment } from "@/types";
 import { supabase } from "@/lib/supabase";
 
 interface AppointmentsState {

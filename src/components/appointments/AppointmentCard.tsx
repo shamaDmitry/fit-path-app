@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { type Appointment } from "@/data/mockData";
+import { type Appointment } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, User, X, DollarSign, CreditCard, Loader2 } from "lucide-react";
