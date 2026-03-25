@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getUserInitials } from "@/lib/utils";
 import { useAppSelector } from "@/store";
@@ -40,6 +40,11 @@ function FooterMenuMob({ setShowLogoutConfirm }: FooterMenuMobProps) {
             className="h-8 w-8 shrink-0 cursor-pointer"
             onClick={() => navigate("/profile")}
           >
+            <AvatarImage
+              src={user?.avatar_url}
+              alt={user?.full_name || "User"}
+            />
+
             <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-xs font-medium">
               {initials}
             </AvatarFallback>

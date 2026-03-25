@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import PasswordInput from "@/components/shared/PasswordInput";
-import GoogleIcon from "@/components/shared/icons/GoogleIcon";
+// import GoogleIcon from "@/components/shared/icons/GoogleIcon";
 import GithubIcon from "@/components/shared/icons/GithubIcon";
 
 const Login = () => {
@@ -87,20 +87,22 @@ const Login = () => {
           </CardHeader>
 
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Button
+            <div className="flex gap-3">
+              {/* <Button
+                size={"lg"}
                 variant="outline"
-                className="w-full h-10 bg-muted/50 border-border/50"
+                className="flex-1 bg-muted/50 border-border/50"
                 onClick={() => handleOAuthLogin("google")}
                 disabled={isLoading}
               >
                 <GoogleIcon className="mr-2 size-4" />
                 Google
-              </Button>
+              </Button> */}
 
               <Button
+                size={"lg"}
                 variant="outline"
-                className="w-full h-10 bg-muted/50 border-border/50"
+                className="flex-1 bg-muted/50 border-border/50"
                 onClick={() => handleOAuthLogin("github")}
                 disabled={isLoading}
               >

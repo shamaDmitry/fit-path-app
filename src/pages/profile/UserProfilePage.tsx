@@ -8,7 +8,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -35,7 +35,7 @@ const UserProfilePage = () => {
 
   if (!user) return null;
 
-  const initials = getUserInitials(user.full_name);
+  const initials = getUserInitials(user?.full_name || "");
 
   const myAppointments = appointments.filter((appointment) => {
     return (
@@ -96,6 +96,12 @@ const UserProfilePage = () => {
               <CardContent className="p-6">
                 <div className="flex flex-col items-center gap-5">
                   <Avatar className="h-24 w-24">
+                    <AvatarImage
+                      className="border-2 overflow-hidden rounded-full border"
+                      src={user?.avatar_url}
+                      alt={user?.full_name || "User"}
+                    />
+
                     <AvatarFallback className="bg-primary/10 text-primary font-display font-bold text-3xl">
                       {initials}
                     </AvatarFallback>

@@ -10,8 +10,6 @@ Deno.serve(async (req) => {
 
   const data = {
     message: `Hello ${name}!`,
-    SUPABASE_URL: Deno.env.get("PROJECT_URL"),
-    SERVICE_ROLE_KEY: Deno.env.get("SERVICE_ROLE_KEY"),
   };
 
   return new Response(

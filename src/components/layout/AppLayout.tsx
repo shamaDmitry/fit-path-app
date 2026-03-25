@@ -99,6 +99,8 @@ function AppSidebarContent() {
     }
   }, [isMobile, setOpenMobile, pathname]);
 
+  console.log("user", user);
+
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarContent className="flex flex-col justify-between">

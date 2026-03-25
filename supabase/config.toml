@@ -304,7 +304,7 @@ max_frequency = "5s"
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
 [auth.external.github]
 enabled = true
-client_id = "your_github_client_id"
+client_id = "env(GITHUB_CLIENT_ID)"
 secret = "env(GITHUB_CLIENT_SECRET)"
 
 [auth.external.apple]

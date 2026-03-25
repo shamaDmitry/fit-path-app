@@ -1,6 +1,6 @@
 import {
-  createSlice,
   createAsyncThunk,
+  createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { supabase } from "@/lib/supabase";
@@ -159,6 +159,7 @@ export const signInWithOAuth = createAsyncThunk(
         provider,
         options: {
           redirectTo: window.location.origin,
+          scopes: provider === "github" ? "read:user" : undefined,
         },
       });
 

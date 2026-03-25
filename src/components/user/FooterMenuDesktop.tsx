@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getUserInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -26,6 +26,8 @@ const FooterMenuDesktop = ({
         className="h-8 w-8 shrink-0 cursor-pointer"
         onClick={() => navigate("/profile")}
       >
+        <AvatarImage src={user?.avatar_url} alt={user?.full_name || "User"} />
+
         <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-xs font-medium">
           {initials}
         </AvatarFallback>
@@ -40,7 +42,9 @@ const FooterMenuDesktop = ({
             {user?.full_name}
           </NavLink>
 
-          <p className="text-[10px] text-sidebar-foreground/50 capitalize">
+          <p className="text-xs text-sidebar-foreground/50">{user?.email}</p>
+
+          <p className="text-xs text-sidebar-foreground/50 capitalize">
             {user?.role}
           </p>
         </div>
