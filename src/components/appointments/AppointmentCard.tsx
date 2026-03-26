@@ -38,6 +38,12 @@ const AppointmentCard = ({
 
   const trainerColor = appointment.trainer?.color || "158 64% 32%";
 
+  const canPay =
+    appointment.status === "scheduled" ||
+    (appointment.status === "completed" &&
+      appointment.price &&
+      !appointment.paid);
+
   const handlePay = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -171,7 +177,7 @@ const AppointmentCard = ({
         className="flex items-center gap-1"
         onClick={(e) => e.stopPropagation()}
       >
-        {!appointment.paid && appointment.status === "scheduled" && (
+        {canPay && (
           <Button
             size="sm"
             variant="default"
