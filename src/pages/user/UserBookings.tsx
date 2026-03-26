@@ -34,12 +34,16 @@ const UserBookings = () => {
 
     if (status === "success") {
       toastShown.current = true;
+
       toast.success("Payment successful! Your appointment is now confirmed.");
 
       // Clear search params
       const newParams = new URLSearchParams(searchParams);
+
       newParams.delete("status");
+
       newParams.delete("session_id");
+
       setSearchParams(newParams, { replace: true });
 
       if (user?.id) {
@@ -47,9 +51,13 @@ const UserBookings = () => {
       }
     } else if (status === "cancelled") {
       toastShown.current = true;
+
       toast.warning("Payment was cancelled.");
+
       const newParams = new URLSearchParams(searchParams);
+
       newParams.delete("status");
+
       setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, setSearchParams, dispatch, user?.id]);

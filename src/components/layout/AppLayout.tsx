@@ -99,8 +99,6 @@ function AppSidebarContent() {
     }
   }, [isMobile, setOpenMobile, pathname]);
 
-  console.log("user", user);
-
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarContent className="flex flex-col justify-between">
@@ -111,7 +109,7 @@ function AppSidebarContent() {
               "justify-center": collapsed,
             })}
           >
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shrink-0">
               <Dumbbell className="w-4 h-4 text-primary-foreground" />
             </div>
 
@@ -239,7 +237,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               to="/"
               className={cn("p-4 flex items-center gap-2 ml-auto")}
             >
-              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shrink-0">
                 <Dumbbell className="w-4 h-4 text-primary-foreground" />
               </div>
 

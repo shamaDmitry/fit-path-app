@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 type ColorToken = {
   name: string;
   var: string;
@@ -235,22 +237,43 @@ const colorGroups: ColorGroup[] = [
 const Colors = () => {
   return (
     <div className="space-y-8">
-      {colorGroups.map((group) => (
-        <section key={group.id} className="space-y-3">
-          <div className="space-y-1">
+      {colorGroups.map((group, groupIndex) => (
+        <motion.section
+          key={group.id}
+          className="space-y-3"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.35, delay: groupIndex * 0.05 }}
+        >
+          <motion.div
+            className="space-y-1"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.25, delay: 0.05 }}
+          >
             <h2 className="text-lg font-display font-semibold text-foreground">
               {group.title}
             </h2>
 
             <p className="text-sm text-muted-foreground">{group.description}</p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {group.colors.map((color) => {
+            {group.colors.map((color, colorIndex) => {
               return (
-                <article
+                <motion.article
                   key={color.var}
-                  className="rounded-xl border border-border bg-card shadow-sm overflow-hidden"
+                  className="rounded-xl border border-border bg-card shadow-sm overflow-hidden transition-shadow duration-200 hover:shadow-md"
+                  initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  whileHover={{ y: -2 }}
+                  viewport={{ once: true, amount: 0.25 }}
+                  transition={{
+                    duration: 0.25,
+                    delay: groupIndex * 0.04 + colorIndex * 0.02,
+                  }}
                 >
                   <div
                     className="h-24 px-4 py-3 flex items-end justify-between"
@@ -281,11 +304,11 @@ const Colors = () => {
                       text: {color.foregroundVar}
                     </p>
                   </div>
-                </article>
+                </motion.article>
               );
             })}
           </div>
-        </section>
+        </motion.section>
       ))}
     </div>
   );

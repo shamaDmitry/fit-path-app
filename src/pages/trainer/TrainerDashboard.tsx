@@ -172,58 +172,60 @@ const TrainerDashboard = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {scheduled.map((apt, i) => (
-              <motion.div
-                key={apt.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="glass rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => navigate(`/appointments/${apt.id}`)}
-              >
-                <div className="shrink-0 w-14 h-14 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
-                  <span className="text-[10px] uppercase font-medium text-primary">
-                    {format(new Date(apt.start_time), "MMM")}
-                  </span>
-
-                  <span className="text-lg font-display font-bold text-primary leading-tight">
-                    {format(new Date(apt.start_time), "dd")}
-                  </span>
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {apt.user_name}
-                  </p>
-
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(apt.start_time), "HH:mm")} –{" "}
-                    {format(new Date(apt.end_time), "HH:mm")}
-                  </p>
-                </div>
-
-                <div
-                  className="flex gap-2"
-                  onClick={(e) => e.stopPropagation()}
+            {scheduled.map((apt, i) => {
+              return (
+                <motion.div
+                  key={apt.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="glass rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/appointments/${apt.id}`)}
                 >
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setCancelId(apt.id)}
-                  >
-                    Cancel
-                  </Button>
+                  <div className="shrink-0 w-14 h-14 rounded-lg bg-primary/10 flex flex-col items-center justify-center">
+                    <span className="text-[10px] uppercase font-medium text-primary">
+                      {format(new Date(apt.start_time), "MMM")}
+                    </span>
 
-                  <Button
-                    size="sm"
-                    className="h-8 text-xs gradient-primary text-primary-foreground"
-                    onClick={() => setCompleteId(apt.id)}
+                    <span className="text-lg font-display font-bold text-primary leading-tight">
+                      {format(new Date(apt.start_time), "dd")}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {apt.user_name}
+                    </p>
+
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(apt.start_time), "HH:mm")} –{" "}
+                      {format(new Date(apt.end_time), "HH:mm")}
+                    </p>
+                  </div>
+
+                  <div
+                    className="flex gap-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    Complete
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setCancelId(apt.id)}
+                    >
+                      Cancel
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="gradient-primary"
+                      onClick={() => setCompleteId(apt.id)}
+                    >
+                      Complete
+                    </Button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -240,7 +242,7 @@ const TrainerDashboard = () => {
               <AppointmentCard
                 key={apt.id}
                 appointment={apt}
-                showTrainer={false}
+                // showTrainer={false}
                 showUser
                 delay={i * 0.03}
               />
@@ -257,6 +259,7 @@ const TrainerDashboard = () => {
         confirmLabel="Cancel Appointment"
         onConfirm={handleCancel}
       />
+
       <ConfirmDialog
         open={!!completeId}
         onOpenChange={(open) => !open && setCompleteId(null)}

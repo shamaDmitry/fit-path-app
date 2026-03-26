@@ -35,21 +35,27 @@ const AppointmentCard = ({
 
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
+
   const trainerColor = appointment.trainer?.color || "158 64% 32%";
 
   const handlePay = async (e: React.MouseEvent) => {
     e.stopPropagation();
+
     setIsPaying(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { 
-          appointmentId: appointment.id,
-          redirectPath: window.location.pathname 
+      const { data, error } = await supabase.functions.invoke(
+        "create-checkout",
+        {
+          body: {
+            appointmentId: appointment.id,
+            redirectPath: window.location.pathname,
+          },
         },
-      });
+      );
 
       if (error) throw error;
+
       if (data?.url) {
         window.location.href = data.url;
       } else {
@@ -57,7 +63,10 @@ const AppointmentCard = ({
       }
     } catch (err: unknown) {
       console.error("Payment error:", err);
-      toast.error(err instanceof Error ? err.message : "Payment failed to initialize");
+
+      toast.error(
+        err instanceof Error ? err.message : "Payment failed to initialize",
+      );
     } finally {
       setIsPaying(false);
     }

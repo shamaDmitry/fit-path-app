@@ -42,7 +42,9 @@ const ConfirmDialog = ({
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel variant="destructive">
+            {cancelLabel}
+          </AlertDialogCancel>
 
           <AlertDialogAction
             onClick={onConfirm}

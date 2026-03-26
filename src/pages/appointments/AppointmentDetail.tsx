@@ -27,6 +27,7 @@ import { useEffect, useRef, useState } from "react";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { getUserInitials } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import AppointmentDetailSkeleton from "@/pages/appointments/AppointmentDetailSkeleton";
 
 const statusStyles: Record<string, string> = {
   scheduled: "bg-info/10 text-info border-info/20",
@@ -37,12 +38,13 @@ const statusStyles: Record<string, string> = {
 const AppointmentDetail = () => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+
   const toastShown = useRef(false);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const { currentAppointment: appointment } = useAppSelector(
+  const { currentAppointment: appointment, loading } = useAppSelector(
     (s) => s.appointments,
   );
   const { trainers } = useAppSelector((s) => s.trainers);
@@ -54,21 +56,32 @@ const AppointmentDetail = () => {
   // Handle payment status from URL
   useEffect(() => {
     const status = searchParams.get("status");
+
     if (!status || toastShown.current) return;
 
     if (status === "success") {
       toastShown.current = true;
+
       toast.success("Payment successful! Your appointment is now confirmed.");
+
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("status");
       newParams.delete("session_id");
+
       setSearchParams(newParams, { replace: true });
-      if (id) dispatch(fetchAppointment(id));
+
+      if (id) {
+        dispatch(fetchAppointment(id));
+      }
     } else if (status === "cancelled") {
       toastShown.current = true;
+
       toast.warning("Payment was cancelled.");
+
       const newParams = new URLSearchParams(searchParams);
+
       newParams.delete("status");
+
       setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, setSearchParams, dispatch, id]);
@@ -85,6 +98,10 @@ const AppointmentDetail = () => {
       dispatch(fetchAppointment(id));
     }
   }, [dispatch, id]);
+
+  if (loading) {
+    return <AppointmentDetailSkeleton />;
+  }
 
   if (!appointment) {
     return (
@@ -185,183 +202,185 @@ const AppointmentDetail = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="secondary" onClick={() => navigate(-1)}>
-        <ArrowLeft className="w-4 h-4 mr-2" /> Back
-      </Button>
+    <>
+      <div className="mx-auto space-y-6">
+        <Button variant="secondary" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-4 h-4 mr-2" /> Back
+        </Button>
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Card className="glass border-border/50 overflow-hidden">
-          <div className="h-2" style={{ backgroundColor: `hsl(${color})` }} />
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="glass border-border/50 overflow-hidden">
+            <div className="h-2" style={{ backgroundColor: `hsl(${color})` }} />
 
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="font-display text-xl">
-                Appointment Details
-              </CardTitle>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-display text-xl">
+                  Appointment Details
+                </CardTitle>
 
-              <Badge
-                variant="outline"
-                className={`capitalize ${statusStyles[appointment.status]}`}
-              >
-                {appointment.status}
-              </Badge>
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <div
-              className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors"
-              onClick={() => navigate(`/trainers/${appointment.trainer_id}`)}
-            >
-              <Avatar className="h-12 w-12">
-                <AvatarFallback
-                  className="font-display font-bold"
-                  style={{
-                    backgroundColor: `hsl(${color} / 0.12)`,
-                    color: `hsl(${color})`,
-                  }}
+                <Badge
+                  variant="outline"
+                  className={`capitalize ${statusStyles[appointment.status]}`}
                 >
-                  {trainerInitials}
-                </AvatarFallback>
-              </Avatar>
-
-              <div>
-                <p className="font-medium text-foreground">
-                  {appointment.trainer_name}
-                </p>
-
-                {trainer && (
-                  <p className="text-xs text-muted-foreground">
-                    {trainer.specialty?.label}
-                  </p>
-                )}
+                  {appointment.status}
+                </Badge>
               </div>
-            </div>
+            </CardHeader>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <User className="w-3 h-3" /> Client
-                </p>
+            <CardContent className="space-y-6">
+              <div
+                className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors"
+                onClick={() => navigate(`/trainers/${appointment.trainer_id}`)}
+              >
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback
+                    className="font-display font-bold"
+                    style={{
+                      backgroundColor: `hsl(${color} / 0.12)`,
+                      color: `hsl(${color})`,
+                    }}
+                  >
+                    {trainerInitials}
+                  </AvatarFallback>
+                </Avatar>
 
-                <p className="text-sm font-medium">
-                  {/* <NavLink to={`/users/${appointment.user_id}`}> */}
-                  <NavLink to="#">{appointment.user_name}</NavLink>
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="w-3 h-3" /> Date
-                </p>
-
-                <p className="text-sm font-medium">
-                  {format(start, "EEEE, MMMM d, yyyy")}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Time
-                </p>
-
-                <p className="text-sm font-medium">
-                  {format(start, "HH:mm")} – {format(end, "HH:mm")}
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" /> Price
-                </p>
-
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">
-                    ${appointment.price || "—"}
+                <div>
+                  <p className="font-medium text-foreground">
+                    {appointment.trainer_name}
                   </p>
 
-                  {appointment.price &&
-                    (appointment.paid ? (
-                      <Badge
-                        variant="outline"
-                        className="text-sm bg-success/10 text-success border-success/20"
-                      >
-                        Paid
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="text-sm bg-warning/10 text-warning border-warning/20"
-                      >
-                        Unpaid
-                      </Badge>
-                    ))}
+                  {trainer && (
+                    <p className="text-xs text-muted-foreground">
+                      {trainer.specialty?.label}
+                    </p>
+                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Created</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <User className="w-3 h-3" /> Client
+                  </p>
 
-              <p className="text-sm">
-                {format(
-                  new Date(appointment.created_at),
-                  "MMM d, yyyy 'at' HH:mm",
-                )}
-              </p>
-            </div>
+                  <p className="text-sm font-medium">
+                    {/* <NavLink to={`/users/${appointment.user_id}`}> */}
+                    <NavLink to="#">{appointment.user_name}</NavLink>
+                  </p>
+                </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              {canPay && (
-                <Button
-                  size="sm"
-                  className="gradient-primary text-primary-foreground"
-                  onClick={handlePay}
-                  disabled={isPaying}
-                >
-                  {isPaying ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <CreditCard className="w-4 h-4 mr-2" />
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Calendar className="w-3 h-3" /> Date
+                  </p>
+
+                  <p className="text-sm font-medium">
+                    {format(start, "EEEE, MMMM d, yyyy")}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Time
+                  </p>
+
+                  <p className="text-sm font-medium">
+                    {format(start, "HH:mm")} – {format(end, "HH:mm")}
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <DollarSign className="w-3 h-3" /> Price
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">
+                      ${appointment.price || "—"}
+                    </p>
+
+                    {appointment.price &&
+                      (appointment.paid ? (
+                        <Badge
+                          variant="outline"
+                          className="text-sm bg-success/10 text-success border-success/20"
+                        >
+                          Paid
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-sm bg-warning/10 text-warning border-warning/20"
+                        >
+                          Unpaid
+                        </Badge>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Created</p>
+
+                <p className="text-sm">
+                  {format(
+                    new Date(appointment.created_at),
+                    "MMM d, yyyy 'at' HH:mm",
                   )}
-                  Pay ${appointment.price}
-                </Button>
-              )}
+                </p>
+              </div>
 
-              {canComplete && (
-                <Button size="sm" variant="success" onClick={handleComplete}>
-                  <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Complete
-                </Button>
-              )}
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                {canPay && (
+                  <Button
+                    size="sm"
+                    className="gradient-primary text-primary-foreground"
+                    onClick={handlePay}
+                    disabled={isPaying}
+                  >
+                    {isPaying ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <CreditCard className="w-4 h-4 mr-2" />
+                    )}
+                    Pay ${appointment.price}
+                  </Button>
+                )}
 
-              {canCancel && (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => setConfirmCancel(true)}
-                >
-                  <XCircle className="w-4 h-4 mr-2" /> Cancel
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                {canComplete && (
+                  <Button size="sm" variant="success" onClick={handleComplete}>
+                    <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Complete
+                  </Button>
+                )}
 
-      <ConfirmDialog
-        open={confirmCancel}
-        onOpenChange={setConfirmCancel}
-        title="Cancel Appointment"
-        description="Are you sure you want to cancel this appointment? This action cannot be undone."
-        confirmLabel="Cancel Appointment"
-        onConfirm={handleCancel}
-      />
-    </div>
+                {canCancel && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => setConfirmCancel(true)}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" /> Cancel
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <ConfirmDialog
+          open={confirmCancel}
+          onOpenChange={setConfirmCancel}
+          title="Cancel Appointment"
+          description="Are you sure you want to cancel this appointment? This action cannot be undone."
+          confirmLabel="Cancel Appointment"
+          onConfirm={handleCancel}
+        />
+      </div>
+    </>
   );
 };
 
