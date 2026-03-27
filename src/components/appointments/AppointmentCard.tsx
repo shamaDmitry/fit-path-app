@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAppSelector } from "@/store";
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -33,16 +34,18 @@ const AppointmentCard = ({
   const navigate = useNavigate();
   const [isPaying, setIsPaying] = useState(false);
 
+  const { user } = useAppSelector((s) => s.auth);
+
   const start = new Date(appointment.start_time);
   const end = new Date(appointment.end_time);
 
   const trainerColor = appointment.trainer?.color || "158 64% 32%";
 
   const canPay =
-    appointment.status === "scheduled" ||
-    (appointment.status === "completed" &&
-      appointment.price &&
-      !appointment.paid);
+    appointment.status === "scheduled" &&
+    user?.role === "user" &&
+    !appointment.paid &&
+    user?.id === appointment.user_id;
 
   const handlePay = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -128,7 +131,6 @@ const AppointmentCard = ({
               <div className="bg-primary p-1 rounded-full text-primary-foreground">
                 <User className="w-3 h-3" />
               </div>
-
               {appointment.user_name}
             </div>
           )}

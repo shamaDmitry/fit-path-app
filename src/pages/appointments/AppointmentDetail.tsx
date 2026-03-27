@@ -50,6 +50,8 @@ const AppointmentDetail = () => {
   const { trainers } = useAppSelector((s) => s.trainers);
   const { user } = useAppSelector((s) => s.auth);
 
+  console.log("user", user);
+
   const [isPaying, setIsPaying] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
 
@@ -127,6 +129,7 @@ const AppointmentDetail = () => {
 
   const canCancel =
     appointment.status === "scheduled" &&
+    !appointment.paid &&
     (user?.role === "admin" ||
       user?.id === appointment.user_id ||
       user?.id === appointment.trainer_id);
@@ -137,6 +140,7 @@ const AppointmentDetail = () => {
 
   const canPay =
     appointment.status === "scheduled" &&
+    user?.role === "user" &&
     !appointment.paid &&
     user?.id === appointment.user_id;
 
@@ -334,39 +338,45 @@ const AppointmentDetail = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 pt-2">
-                {canPay && (
-                  <Button
-                    size="sm"
-                    className="gradient-primary text-primary-foreground"
-                    onClick={handlePay}
-                    disabled={isPaying}
-                  >
-                    {isPaying ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <CreditCard className="w-4 h-4 mr-2" />
-                    )}
-                    Pay ${appointment.price}
-                  </Button>
-                )}
+              {canPay || canComplete || canCancel ? (
+                <div className="flex gap-3 pt-2">
+                  {canPay && (
+                    <Button
+                      size="sm"
+                      className="gradient-primary text-primary-foreground"
+                      onClick={handlePay}
+                      disabled={isPaying}
+                    >
+                      {isPaying ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CreditCard className="w-4 h-4 mr-2" />
+                      )}
+                      Pay ${appointment.price}
+                    </Button>
+                  )}
 
-                {canComplete && (
-                  <Button size="sm" variant="success" onClick={handleComplete}>
-                    <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Complete
-                  </Button>
-                )}
+                  {canComplete && (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      onClick={handleComplete}
+                    >
+                      <CheckCircle2 className="w-4 h-4 mr-2" /> Mark Complete
+                    </Button>
+                  )}
 
-                {canCancel && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => setConfirmCancel(true)}
-                  >
-                    <XCircle className="w-4 h-4 mr-2" /> Cancel
-                  </Button>
-                )}
-              </div>
+                  {canCancel && (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => setConfirmCancel(true)}
+                    >
+                      <XCircle className="w-4 h-4 mr-2" /> Cancel
+                    </Button>
+                  )}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </motion.div>

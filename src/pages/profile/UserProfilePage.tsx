@@ -51,6 +51,10 @@ const UserProfilePage = () => {
     (appointment) => appointment.status === "completed",
   ).length;
 
+  const cancelled = myAppointments.filter(
+    (appointment) => appointment.status === "cancelled",
+  ).length;
+
   const totalSpent = myAppointments
     .filter((appointment) => appointment.paid && appointment.price)
     .reduce((sum, appointment) => sum + (appointment.price || 0), 0);
@@ -97,7 +101,7 @@ const UserProfilePage = () => {
                 <div className="flex flex-col items-center gap-5">
                   <Avatar className="h-24 w-24">
                     <AvatarImage
-                      className="border-2 overflow-hidden rounded-full border"
+                      className="border-2 overflow-hidden rounded-full"
                       src={user?.avatar_url}
                       alt={user?.full_name || "User"}
                     />
@@ -155,40 +159,54 @@ const UserProfilePage = () => {
                   Quick Stats
                 </CardTitle>
               </CardHeader>
+
               <CardContent className="space-y-4 pt-2">
-                <div className="flex justify-between items-center p-2 rounded-lg bg-muted/30 border border-border/30">
-                  <span className="text-xs text-muted-foreground">
+                <div className="flex justify-between items-center p-2 rounded-lg bg-muted/30 border border-border">
+                  <span className="text-sm text-muted-foreground">
                     Appointments
                   </span>
+
                   <span className="font-display font-bold">
                     {myAppointments.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-2 rounded-lg bg-info/5 border border-info/10">
-                  <span className="text-xs text-muted-foreground">
-                    Scheduled
-                  </span>
+
+                <div className="flex justify-between items-center p-2 rounded-lg bg-info/10 border border-info/30">
+                  <span className="text-sm text-info">Scheduled</span>
+
                   <span className="font-display font-bold text-info">
                     {scheduled}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-2 rounded-lg bg-success/5 border border-success/10">
-                  <span className="text-xs text-muted-foreground">
-                    Completed
-                  </span>
+
+                <div className="flex justify-between items-center p-2 rounded-lg bg-success/10 border border-success/30">
+                  <span className="text-sm text-success">Completed</span>
+
                   <span className="font-display font-bold text-success">
                     {completed}
                   </span>
                 </div>
+
                 {user.role === "user" && (
-                  <div className="flex justify-between items-center p-2 rounded-lg bg-warning/5 border border-warning/10">
-                    <span className="text-xs text-muted-foreground">
-                      Invested
-                    </span>
-                    <span className="font-display font-bold text-warning">
-                      ${totalSpent}
-                    </span>
-                  </div>
+                  <>
+                    <div className="flex justify-between items-center p-2 rounded-lg bg-destructive/10 border border-destructive/30">
+                      <span className="text-sm text-destructive">
+                        Cancelled
+                      </span>
+
+                      <span className="font-display font-bold text-destructive">
+                        {cancelled}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center p-2 rounded-lg bg-warning/10 border border-warning/30">
+                      <span className="text-sm text-warning">Invested</span>
+
+                      <span className="font-display font-bold text-warning">
+                        ${totalSpent}
+                      </span>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>

@@ -242,7 +242,7 @@ const TrainerDashboard = () => {
               <AppointmentCard
                 key={apt.id}
                 appointment={apt}
-                // showTrainer={false}
+                showTrainer={false}
                 showUser
                 delay={i * 0.03}
               />

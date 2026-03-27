@@ -300,7 +300,12 @@ const BookingDialog = ({ trainer, open, onOpenChange }: BookingDialogProps) => {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              onOpenChange(false);
+
+              setSelectedDate(null);
+              setSelectedSlotId(null);
+            }}
             disabled={isBooking}
           >
             Cancel

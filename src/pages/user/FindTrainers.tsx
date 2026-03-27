@@ -74,7 +74,7 @@ const FindTrainers = () => {
 
   if (loading && trainers.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-100">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -95,29 +95,36 @@ const FindTrainers = () => {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary-foreground" />
 
           <Input
             placeholder="Search trainers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-10 bg-muted/50 border-border/50"
+            className="pl-9 bg-secondary"
           />
         </div>
 
         <Select value={specialtyId} onValueChange={setSpecialtyId}>
-          <SelectTrigger className="w-full sm:w-48 h-10 bg-muted/50 border-border/50 items-start justify-start">
-            <SlidersHorizontal className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+          <SelectTrigger
+            title={
+              specialties.find((s) => s.id === specialtyId)?.label ||
+              "All Specialties"
+            }
+            className="w-full sm:w-48 bg-secondary items-start justify-start **:data-[slot=select-value]:text-ellipsis **:data-[slot=select-value]:block"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 mr-2 text-secondary-foreground" />
 
             <SelectValue className="flex-1" />
           </SelectTrigger>
 
           <SelectContent>
             <SelectItem value="all">All Specialties</SelectItem>
-            {specialties.map((s) => {
+
+            {specialties.map((item) => {
               return (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.label}
+                <SelectItem key={item.id} value={item.id} className="">
+                  {item.label}
                 </SelectItem>
               );
             })}
@@ -125,16 +132,18 @@ const FindTrainers = () => {
         </Select>
 
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-44 h-10 bg-muted/50 border-border/50">
+          <SelectTrigger className="w-full sm:w-44 bg-secondary">
             <SelectValue />
           </SelectTrigger>
 
           <SelectContent>
-            {sortOptions.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
+            {sortOptions.map((item) => {
+              return (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

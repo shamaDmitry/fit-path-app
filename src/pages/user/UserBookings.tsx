@@ -155,7 +155,7 @@ const UserBookings = () => {
             <Label>Status</Label>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32.5 h-9 bg-secondary border-border/50">
+              <SelectTrigger className="w-32.5 bg-secondary">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
 
@@ -173,7 +173,7 @@ const UserBookings = () => {
             <Label>Payment</Label>
 
             <Select value={paidFilter} onValueChange={setPaidFilter}>
-              <SelectTrigger className="w-32.5 h-9 bg-secondary border-border/50">
+              <SelectTrigger className="w-32.5 bg-secondary">
                 <SelectValue placeholder="Payment" />
               </SelectTrigger>
 
@@ -190,7 +190,7 @@ const UserBookings = () => {
             <Label>Sort By</Label>
 
             <Select value={sortOrder} onValueChange={setSortOrder}>
-              <SelectTrigger className="w-32.5 h-9 bg-secondary border-border/50">
+              <SelectTrigger className="w-32.5 bg-secondary">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
 

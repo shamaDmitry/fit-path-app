@@ -103,6 +103,7 @@ const UserDashboard = () => {
 
       <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <StatCard
+          loading={loading}
           title="Total Sessions"
           value={myAppointments.length}
           icon={Calendar}
@@ -110,6 +111,7 @@ const UserDashboard = () => {
         />
 
         <StatCard
+          loading={loading}
           color="bg-info/10 text-info border-info/20"
           title="Upcoming"
           value={scheduled}
@@ -118,6 +120,7 @@ const UserDashboard = () => {
         />
 
         <StatCard
+          loading={loading}
           color="bg-success/10 text-success border-success/20"
           title="Completed"
           value={completed}
@@ -126,6 +129,7 @@ const UserDashboard = () => {
         />
 
         <StatCard
+          loading={loading}
           color="bg-destructive/10 text-destructive border-destructive/20"
           title="Cancelled"
           value={cancelled}
