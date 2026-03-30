@@ -149,9 +149,11 @@ const FindTrainers = () => {
       </div>
 
       {/* Results */}
-
       <div className="text-sm text-muted-foreground">
-        <span className="font-bold text-base">{filtered.length}</span> trainer
+        <span className="font-bold text-base text-foreground">
+          {filtered.length}
+        </span>{" "}
+        trainer
         {filtered.length !== 1 ? "s" : ""} found
       </div>
 

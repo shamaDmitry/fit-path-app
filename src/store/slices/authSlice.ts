@@ -219,11 +219,41 @@ export const resetPassword = createAsyncThunk(
   },
 );
 
+interface UpdatePasswordPayload {
+  currentPassword?: string;
+  newPassword: string;
+}
+
 export const updatePassword = createAsyncThunk(
   "auth/updatePassword",
-  async (password: string, { rejectWithValue }) => {
+  async (
+    { currentPassword, newPassword }: UpdatePasswordPayload,
+    { getState, rejectWithValue },
+  ) => {
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const state = getState() as { auth: AuthState };
+      const { user } = state.auth;
+
+      if (!user) throw new Error("User not authenticated");
+
+      // Verify current password if provided
+      if (currentPassword) {
+        const { error: signInError } = await supabase.auth
+          .signInWithPassword({
+            email: user.email,
+            password: currentPassword,
+          });
+
+        if (signInError) {
+          throw new Error(
+            "Verification failed: The current password you entered is incorrect.",
+          );
+        }
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
 
       if (error) throw error;
 
@@ -251,6 +281,41 @@ export const deleteAccount = createAsyncThunk(
       await dispatch(signOut());
 
       toast.success("Account deleted successfully.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+
+        return rejectWithValue(error.message);
+      }
+
+      toast.error("An unknown error occurred");
+
+      return rejectWithValue("An unknown error occurred");
+    }
+  },
+);
+
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (updates: Partial<User>, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as { auth: AuthState };
+      const { user } = state.auth;
+
+      if (!user) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success("Profile updated successfully!");
+
+      return data as User;
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -313,6 +378,16 @@ const authSlice = createSlice({
       })
       .addCase(fetchUserCount.fulfilled, (state, action) => {
         state.usersCount = action.payload;
+      })
+      .addCase(updateProfile.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(updateProfile.rejected, (state) => {
+        state.isLoading = false;
       });
   },
 });

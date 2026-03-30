@@ -139,7 +139,8 @@ const AppointmentDetail = () => {
     (user?.role === "admin" || user?.id === appointment.trainer_id);
 
   const canPay =
-    appointment.status === "scheduled" &&
+    (appointment.status === "scheduled" ||
+      appointment.status === "completed") &&
     user?.role === "user" &&
     !appointment.paid &&
     user?.id === appointment.user_id;

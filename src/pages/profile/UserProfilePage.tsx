@@ -12,10 +12,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, Calendar, Shield, Lock, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Mail,
+  Phone,
+  Calendar,
+  Shield,
+  Lock,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+} from "lucide-react";
 import { format } from "date-fns";
 import { getUserInitials } from "@/lib/utils";
-import { updatePassword, deleteAccount } from "@/store/slices/authSlice";
+import {
+  updatePassword,
+  deleteAccount,
+  updateProfile,
+} from "@/store/slices/authSlice";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toast } from "sonner";
 import PasswordInput from "@/components/shared/PasswordInput";
@@ -24,18 +39,49 @@ const UserProfilePage = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector((s) => s.auth.user);
-
+  const session = useAppSelector((s) => s.auth.session);
   const { isLoading } = useAppSelector((s) => s.auth);
 
   const appointments = useAppSelector((s) => s.appointments.appointments);
 
+  const [fullName, setFullName] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!user) return null;
 
+  const isOAuthUser =
+    session?.user?.app_metadata?.provider !== "email" &&
+    session?.user?.app_metadata?.provider !== undefined;
+
   const initials = getUserInitials(user?.full_name || "");
+
+  const handleStartEditing = () => {
+    setFullName(user.full_name);
+
+    setIsEditingName(true);
+  };
+
+  const handleUpdateName = async () => {
+    if (!fullName.trim()) {
+      toast.error("Full name cannot be empty");
+
+      return;
+    }
+
+    if (fullName === user.full_name) {
+      setIsEditingName(false);
+
+      return;
+    }
+
+    await dispatch(updateProfile({ full_name: fullName }));
+
+    setIsEditingName(false);
+  };
 
   const myAppointments = appointments.filter((appointment) => {
     return (
@@ -62,14 +108,33 @@ const UserProfilePage = () => {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!currentPassword) {
+      toast.error("Please enter your current password");
+
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters");
+
+      return;
+    }
+
+    if (newPassword === currentPassword) {
+      toast.error("New password cannot be same as current password");
+
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
 
       return;
     }
 
-    await dispatch(updatePassword(newPassword));
+    await dispatch(updatePassword({ currentPassword, newPassword }));
 
+    setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
   };
@@ -111,10 +176,55 @@ const UserProfilePage = () => {
                     </AvatarFallback>
                   </Avatar>
 
-                  <div className="text-center">
-                    <h2 className="text-xl font-display font-bold text-foreground">
-                      {user.full_name}
-                    </h2>
+                  <div className="text-center w-full">
+                    {isEditingName ? (
+                      <div className="flex flex-col gap-2 items-center">
+                        <Input
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="max-w-50 text-center font-display font-bold text-lg"
+                          disabled={isLoading}
+                          autoFocus
+                        />
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="icon-sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setIsEditingName(false);
+                              setFullName(user.full_name);
+                            }}
+                            disabled={isLoading}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+
+                          <Button
+                            size="icon-sm"
+                            variant="success"
+                            onClick={handleUpdateName}
+                            disabled={isLoading}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 group">
+                        <h2 className="text-xl font-display font-bold text-foreground">
+                          {user.full_name}
+                        </h2>
+
+                        <Button
+                          variant="default"
+                          size="icon-sm"
+                          onClick={handleStartEditing}
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    )}
 
                     <Badge
                       variant="secondary"
@@ -232,47 +342,86 @@ const UserProfilePage = () => {
               </CardHeader>
 
               <CardContent>
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="newPassword">New Password</Label>
+                {isOAuthUser ? (
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50 text-sm text-muted-foreground flex items-center gap-3">
+                    <Shield className="w-5 h-5 text-primary shrink-0" />
 
-                      <PasswordInput
-                        id="newPassword"
-                        value={newPassword}
-                        setPassword={setNewPassword}
-                        isLoading={isLoading}
-                        placeholder="Enter new password"
-                        required
-                        disabled={isLoading}
-                      />
-                    </div>
+                    <div>
+                      <p className="font-medium text-foreground mb-1 capitalize">
+                        Signed in via {session?.user?.app_metadata?.provider}
+                      </p>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="confirmPassword">
-                        Confirm New Password
-                      </Label>
-
-                      <PasswordInput
-                        id="confirmPassword"
-                        value={confirmPassword}
-                        setPassword={setConfirmPassword}
-                        isLoading={isLoading}
-                        placeholder="Confirm new password"
-                        required
-                        disabled={isLoading}
-                      />
+                      <p>
+                        Your security settings are managed through your account
+                        provider. You don't need a password for Fit Path.
+                      </p>
                     </div>
                   </div>
+                ) : (
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="currentPassword" className="mb-3">
+                            Current Password
+                          </Label>
 
-                  <Button
-                    type="submit"
-                    className="gradient-primary text-primary-foreground"
-                    disabled={isLoading || !newPassword}
-                  >
-                    Change Password
-                  </Button>
-                </form>
+                          <PasswordInput
+                            id="currentPassword"
+                            value={currentPassword}
+                            setPassword={setCurrentPassword}
+                            isLoading={isLoading}
+                            placeholder="Enter current password"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="newPassword" className="mb-3">
+                            New Password
+                          </Label>
+
+                          <PasswordInput
+                            id="newPassword"
+                            value={newPassword}
+                            setPassword={setNewPassword}
+                            isLoading={isLoading}
+                            placeholder="Enter new password"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label htmlFor="confirmPassword" className="mb-3">
+                            Confirm New Password
+                          </Label>
+
+                          <PasswordInput
+                            id="confirmPassword"
+                            value={confirmPassword}
+                            setPassword={setConfirmPassword}
+                            isLoading={isLoading}
+                            placeholder="Confirm new password"
+                            required
+                            disabled={isLoading}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="gradient-primary text-primary-foreground"
+                      disabled={isLoading || !newPassword || !currentPassword}
+                    >
+                      Change Password
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </motion.div>
