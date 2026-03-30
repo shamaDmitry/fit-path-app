@@ -3,6 +3,7 @@ import { useAppSelector, useAppDispatch } from "@/store";
 import {
   fetchTrainerTimeslots,
   addTimeslot,
+  bulkAddTimeslots,
   removeTimeslot,
 } from "@/store/slices/timeslotsSlice";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,16 +12,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Plus, Trash2, Loader2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Calendar,
+  Clock,
+  Plus,
+  Trash2,
+  Loader2,
+  Repeat,
+  CalendarDays,
+} from "lucide-react";
+import {
+  format,
+  parseISO,
+  addDays,
+  isBefore,
+  isValid,
+  startOfDay,
+} from "date-fns";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { cn } from "@/lib/utils";
+import type { RepeatType } from "@/types";
 
 const TrainerTimeslots = () => {
   const dispatch = useAppDispatch();
 
-  const user = useAppSelector((s) => s.auth.user);
+  const { user } = useAppSelector((s) => s.auth);
   const { timeslots, loading } = useAppSelector((s) => s.timeslots);
 
   useEffect(() => {
@@ -32,6 +56,8 @@ const TrainerTimeslots = () => {
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
+  const [repeat, setRepeat] = useState<RepeatType>("none");
+  const [repeatUntil, setRepeatUntil] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -40,34 +66,75 @@ const TrainerTimeslots = () => {
 
     if (!date || !startTime || !endTime) {
       toast.error("Please fill all fields");
-
       return;
     }
 
     if (startTime >= endTime) {
       toast.error("End time must be after start time");
+      return;
+    }
 
+    if (repeat !== "none" && !repeatUntil) {
+      toast.error("Please select an end date for repetition");
       return;
     }
 
     setIsAdding(true);
 
     try {
-      await dispatch(
-        addTimeslot({
-          trainer_id: user.id,
-          date,
-          start_time: startTime,
-          end_time: endTime,
-          is_booked: false,
-        }),
-      ).unwrap();
+      if (repeat === "none") {
+        await dispatch(
+          addTimeslot({
+            trainer_id: user.id,
+            date,
+            start_time: startTime,
+            end_time: endTime,
+            is_booked: false,
+          }),
+        ).unwrap();
 
-      toast.success("Timeslot added");
+        toast.success("Timeslot added");
+      } else {
+        const slotsToAdd = [];
+
+        let currentDate = parseISO(date);
+        const endDate = parseISO(repeatUntil);
+
+        if (!isValid(currentDate) || !isValid(endDate)) {
+          toast.error("Invalid dates");
+          return;
+        }
+
+        while (
+          isBefore(startOfDay(currentDate), addDays(startOfDay(endDate), 1))
+        ) {
+          slotsToAdd.push({
+            trainer_id: user.id,
+            date: format(currentDate, "yyyy-MM-dd"),
+            start_time: startTime,
+            end_time: endTime,
+            is_booked: false,
+          });
+
+          if (repeat === "daily") {
+            currentDate = addDays(currentDate, 1);
+          } else if (repeat === "every_other") {
+            currentDate = addDays(currentDate, 2);
+          } else if (repeat === "weekly") {
+            currentDate = addDays(currentDate, 7);
+          }
+        }
+
+        if (slotsToAdd.length > 0) {
+          await dispatch(bulkAddTimeslots(slotsToAdd)).unwrap();
+
+          toast.success(`${slotsToAdd.length} timeslots added`);
+        }
+      }
 
       setDate("");
-      setStartTime("09:00");
-      setEndTime("10:00");
+      setRepeatUntil("");
+      setRepeat("none");
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "Failed to add timeslot",
@@ -114,53 +181,95 @@ const TrainerTimeslots = () => {
         </CardHeader>
 
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Calendar className="w-3 h-3" /> Date
-              </Label>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="w-3 h-3" /> Date
+                </Label>
 
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                className="h-10 bg-muted/50 border-border/50"
-                disabled={isAdding}
-              />
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="h-10 bg-muted/50 border-border/50"
+                  disabled={isAdding}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Start
+                </Label>
+
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="h-10 bg-muted/50 border-border/50"
+                  disabled={isAdding}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> End
+                </Label>
+
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="h-10 bg-muted/50 border-border/50"
+                  disabled={isAdding}
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" /> Start
-              </Label>
+            <div className="flex flex-col sm:flex-row gap-3 items-end">
+              <div className="flex-1 space-y-1.5 w-full">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Repeat className="w-3 h-3" /> Repeat
+                </Label>
 
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="h-10 bg-muted/50 border-border/50"
-                disabled={isAdding}
-              />
-            </div>
+                <Select
+                  value={repeat}
+                  onValueChange={(v) => setRepeat(v as RepeatType)}
+                  disabled={isAdding}
+                >
+                  <SelectTrigger className="h-10 bg-muted/50 border-border/50">
+                    <SelectValue placeholder="Select repeat" />
+                  </SelectTrigger>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" /> End
-              </Label>
+                  <SelectContent>
+                    <SelectItem value="none">No repeat</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="every_other">Every 2 days</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="h-10 bg-muted/50 border-border/50"
-                disabled={isAdding}
-              />
-            </div>
+              {repeat !== "none" && (
+                <div className="flex-1 space-y-1.5 w-full">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <CalendarDays className="w-3 h-3" /> Until
+                  </Label>
 
-            <div className="flex items-end">
+                  <Input
+                    type="date"
+                    value={repeatUntil}
+                    onChange={(e) => setRepeatUntil(e.target.value)}
+                    min={date || new Date().toISOString().split("T")[0]}
+                    className="h-10 bg-muted/50 border-border/50"
+                    disabled={isAdding}
+                  />
+                </div>
+              )}
+
               <Button
-                className="gradient-primary text-primary-foreground h-10"
+                className="gradient-primary text-primary-foreground h-10 w-full sm:w-auto"
                 onClick={handleAdd}
                 disabled={isAdding}
               >

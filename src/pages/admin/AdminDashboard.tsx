@@ -18,8 +18,6 @@ import {
 import { toast } from "sonner";
 import { fetchAdminAppointments } from "@/store/slices/appointmentsSlice";
 import { fetchUserCount } from "@/store/slices/authSlice";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
 
 const AdminDashboard = () => {
   const dispatch = useAppDispatch();
@@ -69,20 +67,13 @@ const AdminDashboard = () => {
     setCancelId(null);
   };
 
+  console.log("appointments", appointments);
+
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-display font-bold text-foreground">
-          Admin Dashboard{" "}
-          <Button
-            onClick={() => {
-              supabase.functions.invoke("hello", {
-                body: { name: "Admin" },
-              });
-            }}
-          >
-            Test func
-          </Button>
+          Admin Dashboard
         </h1>
 
         <p className="text-sm text-muted-foreground mt-1">

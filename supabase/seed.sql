@@ -148,3 +148,11 @@ VALUES
 ('c3d4e5f6-a7b8-4c9d-0e1f-a2b3c4d5e6f7', CURRENT_DATE + 1, '12:00', '13:00', false),
 ('d4e5f6a7-b8c9-4d0e-1f2a-b3c4d5e6f7a8', CURRENT_DATE + 1, '10:00', '11:00', false),
 ('d4e5f6a7-b8c9-4d0e-1f2a-b3c4d5e6f7a8', CURRENT_DATE + 1, '13:00', '14:00', false);
+
+-- Add sample appointments
+INSERT INTO public.appointments (user_id, trainer_id, start_time, end_time, status, price, paid)
+VALUES 
+('a1b2c3d4-e5f6-4a5b-bcde-f12345678901', 'e79f6e16-09a2-4a73-8b77-3e6f98126742', ((CURRENT_DATE + 1)::TEXT || ' 09:00:00+00')::TIMESTAMPTZ, ((CURRENT_DATE + 1)::TEXT || ' 10:00:00+00')::TIMESTAMPTZ, 'scheduled', 50, true),
+('a1b2c3d4-e5f6-4a5b-bcde-f12345678901', '7f5e1a32-1234-4567-89ab-cdef01234567', ((CURRENT_DATE + 2)::TEXT || ' 11:00:00+00')::TIMESTAMPTZ, ((CURRENT_DATE + 2)::TEXT || ' 12:00:00+00')::TIMESTAMPTZ, 'scheduled', 60, false);
+
+

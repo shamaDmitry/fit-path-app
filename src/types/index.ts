@@ -55,3 +55,5 @@ export interface User {
   phone?: string;
   joined_at?: string;
 }
+
+export type RepeatType = "none" | "daily" | "every_other" | "weekly";

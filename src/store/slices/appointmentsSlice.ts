@@ -43,6 +43,8 @@ export const fetchAdminAppointments = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
 
+    console.log("11data", data);
+
     return ((data ?? []) as AppointmentWithRelations[]).map(toAppointment);
   },
 );
@@ -192,6 +194,8 @@ const appointmentsSlice = createSlice({
       .addCase(fetchAdminAppointments.fulfilled, (state, action) => {
         state.loading = false;
         state.appointments = action.payload;
+
+        console.log("action.payload", action.payload);
       })
       .addCase(fetchAdminAppointments.rejected, (state, action) => {
         state.loading = false;

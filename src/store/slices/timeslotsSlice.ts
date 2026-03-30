@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { type Timeslot } from "@/types";
 import { supabase } from "@/lib/supabase";
 
@@ -21,12 +21,12 @@ export const fetchTrainerTimeslots = createAsyncThunk(
       .from("timeslots")
       .select("*")
       .eq("trainer_id", trainerId)
-      .order("date")
+      .order("date", { ascending: false })
       .order("start_time");
 
     if (error) return rejectWithValue(error.message);
     return data as Timeslot[];
-  }
+  },
 );
 
 export const fetchPublicTimeslots = createAsyncThunk(
@@ -38,12 +38,12 @@ export const fetchPublicTimeslots = createAsyncThunk(
       .eq("trainer_id", trainerId)
       .eq("is_booked", false)
       .gte("date", new Date().toISOString().split("T")[0])
-      .order("date")
+      .order("date", { ascending: false })
       .order("start_time");
 
     if (error) return rejectWithValue(error.message);
     return data as Timeslot[];
-  }
+  },
 );
 
 export const addTimeslot = createAsyncThunk(
@@ -57,7 +57,20 @@ export const addTimeslot = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
     return data as Timeslot;
-  }
+  },
+);
+
+export const bulkAddTimeslots = createAsyncThunk(
+  "timeslots/bulkAddTimeslots",
+  async (timeslots: Omit<Timeslot, "id">[], { rejectWithValue }) => {
+    const { data, error } = await supabase
+      .from("timeslots")
+      .insert(timeslots)
+      .select();
+
+    if (error) return rejectWithValue(error.message);
+    return data as Timeslot[];
+  },
 );
 
 export const removeTimeslot = createAsyncThunk(
@@ -70,7 +83,7 @@ export const removeTimeslot = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
     return id;
-  }
+  },
 );
 
 export const bookTimeslot = createAsyncThunk(
@@ -85,7 +98,7 @@ export const bookTimeslot = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
     return data as Timeslot;
-  }
+  },
 );
 
 export const unbookTimeslot = createAsyncThunk(
@@ -100,7 +113,7 @@ export const unbookTimeslot = createAsyncThunk(
 
     if (error) return rejectWithValue(error.message);
     return data as Timeslot;
-  }
+  },
 );
 
 const timeslotsSlice = createSlice({
@@ -135,22 +148,35 @@ const timeslotsSlice = createSlice({
       })
       .addCase(addTimeslot.fulfilled, (state, action) => {
         state.timeslots.push(action.payload);
-        // Re-sort
-        state.timeslots.sort((a, b) => 
+
+        state.timeslots.sort((a, b) =>
+          `${a.date}${a.start_time}`.localeCompare(`${b.date}${b.start_time}`)
+        );
+      })
+      .addCase(bulkAddTimeslots.fulfilled, (state, action) => {
+        state.timeslots.push(...action.payload);
+
+        state.timeslots.sort((a, b) =>
           `${a.date}${a.start_time}`.localeCompare(`${b.date}${b.start_time}`)
         );
       })
       .addCase(removeTimeslot.fulfilled, (state, action) => {
-        state.timeslots = state.timeslots.filter((ts) => ts.id !== action.payload);
+        state.timeslots = state.timeslots.filter((ts) =>
+          ts.id !== action.payload
+        );
       })
       .addCase(bookTimeslot.fulfilled, (state, action) => {
-        const index = state.timeslots.findIndex((ts) => ts.id === action.payload.id);
+        const index = state.timeslots.findIndex((ts) =>
+          ts.id === action.payload.id
+        );
         if (index !== -1) {
           state.timeslots[index].is_booked = true;
         }
       })
       .addCase(unbookTimeslot.fulfilled, (state, action) => {
-        const index = state.timeslots.findIndex((ts) => ts.id === action.payload.id);
+        const index = state.timeslots.findIndex((ts) =>
+          ts.id === action.payload.id
+        );
         if (index !== -1) {
           state.timeslots[index].is_booked = false;
         }
