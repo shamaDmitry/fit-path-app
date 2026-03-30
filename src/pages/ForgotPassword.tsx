@@ -28,8 +28,8 @@ const ForgotPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/5 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/50 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/50 blur-3xl" />
       </div>
 
       <motion.div
@@ -39,9 +39,10 @@ const ForgotPassword = () => {
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
+
             <span className="text-2xl font-display font-bold text-foreground">
               FitPath
             </span>
@@ -50,14 +51,22 @@ const ForgotPassword = () => {
 
         <Card className="glass border-border/50">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-display">Forgot Password</CardTitle>
-            <CardDescription>Enter your email to reset your password</CardDescription>
+            <CardTitle className="text-lg font-display">
+              Forgot Password
+            </CardTitle>
+
+            <CardDescription>
+              Enter your email to reset your password
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs text-muted-foreground">
+                <Label
+                  htmlFor="email"
+                  className="text-xs text-muted-foreground"
+                >
                   Email
                 </Label>
                 <Input
@@ -81,7 +90,10 @@ const ForgotPassword = () => {
             </form>
 
             <div className="text-center pt-2">
-              <Link to="/login" className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+              <Link
+                to="/login"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              >
                 <ArrowLeft className="w-3 h-3" />
                 Back to login
               </Link>

@@ -3,7 +3,6 @@ import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
-import ResetPassword from "@/pages/ResetPassword";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Provider } from "react-redux";
 import { store, useAppDispatch, useAppSelector } from "@/store";
@@ -147,7 +146,6 @@ function AppRoutes() {
           )
         }
       />
-      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route path="/" element={<Navigate to={homeRedirect()} replace />} />
 
