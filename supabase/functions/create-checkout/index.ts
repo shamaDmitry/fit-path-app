@@ -23,13 +23,38 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get("Authorization");
+
+    if (!authHeader) {
+      throw new Error("Missing Authorization header");
+    }
+
+    // Extract the token from the Bearer header
+    const token = authHeader.replace("Bearer ", "");
+
+    // Initialize Supabase Client
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+    );
+
+    // Get the user from the JWT by passing the token directly
+    const { data: { user }, error: userError } = await supabaseClient.auth
+      .getUser(token);
+
+    console.log("test", { user, userError });
+
+    if (userError || !user) {
+      console.error("User verification failed:", userError);
+      throw new Error("Invalid or missing user");
+    }
+
     const { appointmentId, redirectPath = "/profile" } = await req.json();
 
     if (!appointmentId) {
       throw new Error("Appointment ID is required");
     }
 
-    // 1. Fetch appointment details with relations
     const { data: appointment, error: aptError } = await supabaseAdmin
       .from("appointments")
       .select(`
@@ -42,6 +67,10 @@ serve(async (req) => {
 
     if (aptError || !appointment) {
       throw new Error("Appointment not found");
+    }
+
+    if (appointment.user_id !== user.id) {
+      throw new Error("Unauthorized: You do not own this appointment");
     }
 
     // 2. Create Stripe Checkout Session

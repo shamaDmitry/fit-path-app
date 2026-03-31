@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
-import { useSearchParams } from "react-router";
+import { usePaymentStatus } from "@/hooks/use-payment-status";
 import {
   fetchUserAppointments,
   updateAppointmentStatus,
@@ -21,53 +21,10 @@ import { Label } from "@/components/ui/label";
 
 const UserBookings = () => {
   const dispatch = useAppDispatch();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const toastShown = useRef(false);
+  usePaymentStatus();
 
   const user = useAppSelector((s) => s.auth.user);
   const { appointments, loading } = useAppSelector((s) => s.appointments);
-
-  // Handle payment status from URL
-  useEffect(() => {
-    const status = searchParams.get("status");
-    if (!status || toastShown.current) return;
-
-    if (status === "success") {
-      toastShown.current = true;
-
-      toast.success("Payment successful! Your appointment is now confirmed.");
-
-      // Clear search params
-      const newParams = new URLSearchParams(searchParams);
-
-      newParams.delete("status");
-
-      newParams.delete("session_id");
-
-      setSearchParams(newParams, { replace: true });
-
-      if (user?.id) {
-        dispatch(fetchUserAppointments(user.id));
-      }
-    } else if (status === "cancelled") {
-      toastShown.current = true;
-
-      toast.warning("Payment was cancelled.");
-
-      const newParams = new URLSearchParams(searchParams);
-
-      newParams.delete("status");
-
-      setSearchParams(newParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams, dispatch, user?.id]);
-
-  // Reset the guard when the path changes or search params are cleared
-  useEffect(() => {
-    if (!searchParams.get("status")) {
-      toastShown.current = false;
-    }
-  }, [searchParams]);
 
   // Filter and Sort states
   const [statusFilter, setStatusFilter] = useState("all");

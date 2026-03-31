@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
+import { usePaymentStatus } from "@/hooks/use-payment-status";
 import {
   fetchUserAppointments,
   updateAppointmentStatus,
@@ -23,7 +24,10 @@ const UserDashboard = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
+  usePaymentStatus();
+
   const user = useAppSelector((store) => store.auth.user);
+
   const { appointments, loading } = useAppSelector(
     (store) => store.appointments,
   );

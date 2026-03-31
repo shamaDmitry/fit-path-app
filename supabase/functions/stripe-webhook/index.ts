@@ -32,10 +32,30 @@ serve(async (req) => {
       const session = event.data.object as Stripe.Checkout.Session;
       const appointmentId = session.metadata?.appointment_id;
 
-      if (appointmentId) {
-        console.log(`✅ Payment successful for appointment: ${appointmentId}`);
+      console.log(`Processing session: ${session.id}, appointmentId: ${appointmentId}`);
 
-        // Explicitly target public schema and log result
+      if (appointmentId) {
+        console.log(`✅ Payment successful for appointment: ${appointmentId}. Checking existence...`);
+
+        // 1. First, just try to find it
+        const { data: existing, error: findError } = await supabaseAdmin
+          .from("appointments")
+          .select("id, paid, status")
+          .eq("id", appointmentId)
+          .maybeSingle();
+
+        if (findError) {
+          console.error(`❌ Database error while searching: ${findError.message}`);
+        }
+
+        if (!existing) {
+          console.error(`⚠️ CRITICAL: Appointment ${appointmentId} NOT FOUND in database. This usually means the SERVICE_ROLE_KEY is wrong or the SUPABASE_URL points to a different project.`);
+          return new Response(JSON.stringify({ error: "Appointment not found" }), { status: 404 });
+        }
+
+        console.log(`📍 Found appointment. Current state: paid=${existing.paid}, status=${existing.status}. Updating...`);
+
+        // 2. Perform the update
         const { data, error } = await supabaseAdmin
           .from("appointments")
           .update({ paid: true })
@@ -43,13 +63,17 @@ serve(async (req) => {
           .select();
 
         if (error) {
-          console.error(`❌ Error updating appointment: ${error.message}`);
+          console.error(`❌ Error updating appointment ${appointmentId}: ${error.message}`);
           throw error;
         }
 
-        console.log(`🚀 Database updated successfully:`, data);
+        if (!data || data.length === 0) {
+          console.error(`⚠️ No appointment found with ID ${appointmentId} to update.`);
+        } else {
+          console.log(`🚀 Database updated successfully for ${appointmentId}:`, data);
+        }
       } else {
-        console.error("❌ No appointment_id found in session metadata");
+        console.error("❌ No appointment_id found in session metadata. Metadata was:", JSON.stringify(session.metadata));
       }
     }
 
