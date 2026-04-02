@@ -20,7 +20,7 @@ const ResetPassword = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, isAuthenticated } = useAppSelector((s) => s.auth);
+  const { isLoading, isAuthenticated, user } = useAppSelector((s) => s.auth);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,7 +44,6 @@ const ResetPassword = () => {
 
       setIsSuccess(true);
 
-      // Auto-redirect after a short delay
       setTimeout(() => {
         navigate(getHomeRoute(user?.role));
       }, 3000);
@@ -77,22 +76,20 @@ const ResetPassword = () => {
             <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-success" />
             </div>
-
             <CardTitle className="text-2xl font-display mb-2">
               Password Reset!
             </CardTitle>
-
             <CardDescription className="text-base">
               Your password has been successfully updated. Redirecting you to
               your dashboard...
             </CardDescription>
-
-            <Button 
+            <Button
               className="mt-8 w-full gradient-primary text-primary-foreground"
               onClick={() => navigate(getHomeRoute(user?.role))}
             >
               Go to Dashboard
-            </Button>          </Card>
+            </Button>
+          </Card>
         </motion.div>
       </div>
     );
@@ -126,9 +123,11 @@ const ResetPassword = () => {
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <KeyRound className="w-6 h-6 text-primary" />
             </div>
+
             <CardTitle className="text-xl font-display">
               Set New Password
             </CardTitle>
+
             <CardDescription>
               Choose a strong password for your account
             </CardDescription>
@@ -143,6 +142,7 @@ const ResetPassword = () => {
                 >
                   New Password
                 </Label>
+
                 <PasswordInput
                   id="password"
                   value={password}
@@ -159,6 +159,7 @@ const ResetPassword = () => {
                 >
                   Confirm New Password
                 </Label>
+
                 <PasswordInput
                   id="confirmPassword"
                   value={confirmPassword}

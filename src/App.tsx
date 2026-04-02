@@ -67,7 +67,7 @@ function ProtectedRoute({
 function AppRoutes() {
   const dispatch = useAppDispatch();
 
-  const { isAuthenticated, user, isLoading } = useAppSelector((s) => s.auth);
+  const { isAuthenticated, user } = useAppSelector((s) => s.auth);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -135,12 +135,12 @@ function AppRoutes() {
           )
         }
       />
-      <Route
-        path="/reset-password"
-        element={<ResetPassword />}
-      />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route path="/" element={<Navigate to={getHomeRoute(user?.role)} replace />} />
+      <Route
+        path="/"
+        element={<Navigate to={getHomeRoute(user?.role)} replace />}
+      />
 
       {/* User routes */}
       <Route
