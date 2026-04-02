@@ -41,9 +41,7 @@ import {
 
 const UserProfilePage = () => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((s) => s.auth);
-  const { session } = useAppSelector((s) => s.auth);
-  const { isLoading } = useAppSelector((s) => s.auth);
+  const { user, session, isActionLoading: isLoading } = useAppSelector((s) => s.auth);
   const { appointments } = useAppSelector((s) => s.appointments);
 
   useEffect(() => {

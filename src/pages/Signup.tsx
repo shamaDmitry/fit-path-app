@@ -19,8 +19,7 @@ import { Eye, EyeOff, Sparkles } from "lucide-react";
 const Signup = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
-  const { isLoading } = useAppSelector((s) => s.auth);
+  const { isActionLoading: isLoading } = useAppSelector((s) => s.auth);
 
   const [email, setEmail] = useState("test@test.com");
   const [password, setPassword] = useState("test1234");

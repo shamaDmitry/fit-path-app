@@ -13,6 +13,7 @@ interface AuthState {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isActionLoading: boolean;
   error: string | null;
   usersCount: number;
 }
@@ -22,6 +23,7 @@ const initialState: AuthState = {
   session: null,
   isAuthenticated: false,
   isLoading: true,
+  isActionLoading: false,
   error: null,
   usersCount: 0,
 };
@@ -203,13 +205,43 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async (email: string, { rejectWithValue }) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) throw error;
+
+      toast.success("Password reset code sent to your email!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+
+        return rejectWithValue(error.message);
+      }
+
+      toast.error("An unknown error occurred");
+
+      return rejectWithValue("An unknown error occurred");
+    }
+  },
+);
+
+export const verifyResetOtp = createAsyncThunk(
+  "auth/verifyResetOtp",
+  async (
+    { email, token }: { email: string; token: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "recovery",
       });
 
       if (error) throw error;
 
-      toast.success("Password reset email sent!");
+      toast.success("Code verified successfully!");
+
+      return data;
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -335,6 +367,12 @@ export const updateProfile = createAsyncThunk(
   },
 );
 
+export const getHomeRoute = (role?: string) => {
+  if (role === "admin") return "/admin";
+  if (role === "trainer") return "/trainer";
+  return "/dashboard";
+};
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -346,7 +384,13 @@ const authSlice = createSlice({
       state.session = action.payload.session;
       state.user = action.payload.user;
       state.isAuthenticated = !!action.payload.session;
-      state.isLoading = false;
+      // If we have a session but no user profile yet, keep loading true
+      // so the app doesn't flicker or redirect incorrectly
+      if (state.isAuthenticated && !state.user) {
+        state.isLoading = true;
+      } else {
+        state.isLoading = false;
+      }
     },
     setLoading(state, action: PayloadAction<boolean>) {
       state.isLoading = action.payload;
@@ -355,24 +399,24 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(signIn.pending, (state) => {
-        state.isLoading = true;
+        state.isActionLoading = true;
         state.error = null;
       })
       .addCase(signIn.fulfilled, (state, action) => {
         state.session = action.payload.session;
         state.user = action.payload.user;
         state.isAuthenticated = !!action.payload.session;
-        state.isLoading = false;
+        state.isActionLoading = false;
       })
       .addCase(signIn.rejected, (state, action) => {
-        state.isLoading = false;
+        state.isActionLoading = false;
         state.error = action.payload as string;
       })
       .addCase(signOut.fulfilled, (state) => {
         state.user = null;
         state.session = null;
         state.isAuthenticated = false;
-        state.isLoading = false;
+        state.isActionLoading = false;
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.user = action.payload;
@@ -385,14 +429,44 @@ const authSlice = createSlice({
         state.usersCount = action.payload;
       })
       .addCase(updateProfile.pending, (state) => {
-        state.isLoading = true;
+        state.isActionLoading = true;
       })
       .addCase(updateProfile.fulfilled, (state, action) => {
         state.user = action.payload;
-        state.isLoading = false;
+        state.isActionLoading = false;
       })
       .addCase(updateProfile.rejected, (state) => {
-        state.isLoading = false;
+        state.isActionLoading = false;
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.isActionLoading = true;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.isActionLoading = false;
+      })
+      .addCase(resetPassword.rejected, (state) => {
+        state.isActionLoading = false;
+      })
+      .addCase(verifyResetOtp.pending, (state) => {
+        state.isActionLoading = true;
+      })
+      .addCase(verifyResetOtp.fulfilled, (state, action) => {
+        state.isActionLoading = false;
+        state.session = action.payload.session;
+        state.isAuthenticated = !!action.payload.session;
+        // Profile will be fetched by onAuthStateChange in App.tsx
+      })
+      .addCase(verifyResetOtp.rejected, (state) => {
+        state.isActionLoading = false;
+      })
+      .addCase(updatePassword.pending, (state) => {
+        state.isActionLoading = true;
+      })
+      .addCase(updatePassword.fulfilled, (state) => {
+        state.isActionLoading = false;
+      })
+      .addCase(updatePassword.rejected, (state) => {
+        state.isActionLoading = false;
       });
   },
 });

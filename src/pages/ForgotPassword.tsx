@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { resetPassword } from "@/store/slices/authSlice";
+import { resetPassword, verifyResetOtp } from "@/store/slices/authSlice";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,24 +13,55 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, ArrowLeft } from "lucide-react";
+import { Sparkles, ArrowLeft, Mail, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
 const ForgotPassword = () => {
   const dispatch = useAppDispatch();
-  const { isLoading } = useAppSelector((s) => s.auth);
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+  const { isActionLoading: isLoading } = useAppSelector((s) => s.auth);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("shama.dmitry@gmail.com");
+  const [code, setCode] = useState("");
+
+  const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(resetPassword(email));
+    if (!email) return;
+
+    try {
+      await dispatch(resetPassword(email)).unwrap();
+
+      setStep("code");
+    } catch (error) {
+      // Error handled by toast in thunk
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (code.length !== 6) {
+      toast.error("Please enter a 6-digit code");
+
+      return;
+    }
+
+    try {
+      await dispatch(verifyResetOtp({ email, token: code })).unwrap();
+      // After verification, the user is signed in.
+      // We navigate to the reset password page to set the new password.
+      navigate("/reset-password");
+    } catch (error) {
+      // Error handled by toast in thunk
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/50 blur-3xl" />
-
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/50 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/20 blur-3xl" />
       </div>
 
       <motion.div
@@ -50,57 +81,145 @@ const ForgotPassword = () => {
           </div>
         </div>
 
-        <Card className="glass border-border/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg font-display">
-              Forgot Password
-            </CardTitle>
-
-            <CardDescription>
-              Enter your email to reset your password
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="email"
-                  className="text-xs text-muted-foreground"
-                >
-                  Email
-                </Label>
-
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-10 bg-muted/50 border-border/50"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full gradient-primary text-primary-foreground h-10"
-                disabled={isLoading}
+        <Card className="glass border-border/50 shadow-xl overflow-hidden">
+          <AnimatePresence mode="wait">
+            {step === "email" ? (
+              <motion.div
+                key="email-step"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
               >
-                {isLoading ? "Sending..." : "Send Reset Link"}
-              </Button>
-            </form>
+                <CardHeader className="pb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 mx-auto">
+                    <Mail className="w-6 h-6 text-primary" />
+                  </div>
 
-            <div className="text-center pt-2">
-              <Link
-                to="/login"
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                  <CardTitle className="text-xl font-display">
+                    Forgot Password
+                  </CardTitle>
+
+                  <CardDescription>
+                    Enter your email to receive a 6-digit reset code
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <form onSubmit={handleSendEmail} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="email"
+                        className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Email Address
+                      </Label>
+
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="name@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-11 bg-muted/30 border-border/50 focus:ring-primary/20"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full gradient-primary text-primary-foreground h-11 font-medium"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Sending..." : "Send Code"}
+                    </Button>
+                  </form>
+
+                  <div className="text-center pt-2">
+                    <Link
+                      to="/login"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Back to login
+                    </Link>
+                  </div>
+                </CardContent>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="code-step"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
               >
-                <ArrowLeft className="w-3 h-3" />
-                Back to login
-              </Link>
-            </div>
-          </CardContent>
+                <CardHeader className="pb-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <ShieldCheck className="w-6 h-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl font-display">
+                    Enter Verification Code
+                  </CardTitle>
+                  <CardDescription>
+                    We've sent a 6-digit code to{" "}
+                    <span className="font-medium text-foreground">{email}</span>
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                  <form onSubmit={handleVerifyCode} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="code"
+                        className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Verification Code
+                      </Label>
+                      <Input
+                        id="code"
+                        type="text"
+                        placeholder="000000"
+                        maxLength={6}
+                        value={code}
+                        onChange={(e) =>
+                          setCode(e.target.value.replace(/[^0-9]/g, ""))
+                        }
+                        className="h-12 bg-muted/30 border-border/50 text-center text-2xl tracking-[0.5em] font-mono focus:ring-primary/20"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full gradient-primary text-primary-foreground h-11 font-medium"
+                      disabled={isLoading || code.length !== 6}
+                    >
+                      {isLoading ? "Verifying..." : "Verify Code"}
+                    </Button>
+                  </form>
+
+                  <div className="text-center space-y-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setStep("email")}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors block mx-auto"
+                    >
+                      Use a different email
+                    </button>
+                    <Link
+                      to="/login"
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Back to login
+                    </Link>
+                  </div>
+                </CardContent>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Card>
       </motion.div>
     </div>

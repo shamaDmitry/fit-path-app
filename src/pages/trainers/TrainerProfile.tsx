@@ -21,6 +21,7 @@ import { format, parseISO } from "date-fns";
 import { getUserInitials } from "@/lib/utils";
 import { fetchTrainer } from "@/store/slices/trainersSlice";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchPublicTimeslots } from "@/store/slices/timeslotsSlice";
 
 const TrainerProfile = () => {
   const { id } = useParams();
@@ -47,6 +48,7 @@ const TrainerProfile = () => {
   useEffect(() => {
     if (id) {
       dispatch(fetchTrainer(id));
+      dispatch(fetchPublicTimeslots(id));
     }
   }, [dispatch, id]);
 
@@ -82,7 +84,7 @@ const TrainerProfile = () => {
   const initials = getUserInitials(trainer.full_name);
 
   const availableSlots = timeslots.filter(
-    (ts) => ts.trainer_id === trainer.id && !ts.is_booked,
+    (timeSlot) => timeSlot.trainer_id === trainer.id && !timeSlot.is_booked,
   );
 
   const completedSessions = appointments.filter(
@@ -157,6 +159,7 @@ const TrainerProfile = () => {
                     <Clock className="w-4 h-4" /> {trainer.experience_years}{" "}
                     years
                   </span>
+
                   <span className="flex items-center gap-1.5">
                     <Calendar className="w-4 h-4" /> {completedSessions}{" "}
                     sessions completed
@@ -219,6 +222,7 @@ const TrainerProfile = () => {
                 Certifications
               </CardTitle>
             </CardHeader>
+
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {(trainer.certifications || []).map((cert) => (
@@ -248,6 +252,7 @@ const TrainerProfile = () => {
                 Available Timeslots ({availableSlots.length})
               </CardTitle>
             </CardHeader>
+
             <CardContent>
               {availableSlots.length === 0 ? (
                 <p className="text-sm text-muted-foreground">

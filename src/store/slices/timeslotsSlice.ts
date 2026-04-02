@@ -38,7 +38,7 @@ export const fetchPublicTimeslots = createAsyncThunk(
       .eq("trainer_id", trainerId)
       .eq("is_booked", false)
       .gte("date", new Date().toISOString().split("T")[0])
-      .order("date", { ascending: false })
+      .order("date", { ascending: true })
       .order("start_time");
 
     if (error) return rejectWithValue(error.message);

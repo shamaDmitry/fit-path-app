@@ -22,7 +22,7 @@ const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading } = useAppSelector((s) => s.auth);
+  const { isActionLoading: isLoading } = useAppSelector((s) => s.auth);
   const [email, setEmail] = useState("admin@fitpath.com");
   const [password, setPassword] = useState("AdminPassword123!");
 

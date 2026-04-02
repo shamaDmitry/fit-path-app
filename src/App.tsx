@@ -3,12 +3,18 @@ import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Provider } from "react-redux";
 import { store, useAppDispatch, useAppSelector } from "@/store";
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { setSession, fetchProfile, setLoading } from "@/store/slices/authSlice";
+import {
+  setSession,
+  fetchProfile,
+  setLoading,
+  getHomeRoute,
+} from "@/store/slices/authSlice";
 
 import AppLayout from "@/components/layout/AppLayout";
 import UserDashboard from "@/pages/user/UserDashboard";
@@ -41,7 +47,10 @@ function ProtectedRoute({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Skeleton className="w-75 h-50 rounded-xl" />
+        <div className="space-y-4 text-center">
+          <Skeleton className="w-12 h-12 rounded-full mx-auto" />
+          <Skeleton className="w-48 h-4 mx-auto" />
+        </div>
       </div>
     );
   }
@@ -49,7 +58,7 @@ function ProtectedRoute({
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomeRoute(user.role)} replace />;
   }
 
   return <AppLayout>{children}</AppLayout>;
@@ -94,41 +103,23 @@ function AppRoutes() {
     };
   }, [dispatch]);
 
-  const homeRedirect = () => {
-    if (!isAuthenticated) return "/login";
-
-    if (user?.role === "admin") return "/admin";
-
-    if (user?.role === "trainer") return "/trainer";
-
-    return "/dashboard";
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="space-y-4 text-center">
-          <Skeleton className="w-12 h-12 rounded-full mx-auto" />
-
-          <Skeleton className="w-48 h-4 mx-auto" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <Routes>
       <Route
         path="/login"
         element={
-          isAuthenticated ? <Navigate to={homeRedirect()} replace /> : <Login />
+          isAuthenticated ? (
+            <Navigate to={getHomeRoute(user?.role)} replace />
+          ) : (
+            <Login />
+          )
         }
       />
       <Route
         path="/signup"
         element={
           isAuthenticated ? (
-            <Navigate to={homeRedirect()} replace />
+            <Navigate to={getHomeRoute(user?.role)} replace />
           ) : (
             <Signup />
           )
@@ -138,14 +129,18 @@ function AppRoutes() {
         path="/forgot-password"
         element={
           isAuthenticated ? (
-            <Navigate to={homeRedirect()} replace />
+            <Navigate to={getHomeRoute(user?.role)} replace />
           ) : (
             <ForgotPassword />
           )
         }
       />
+      <Route
+        path="/reset-password"
+        element={<ResetPassword />}
+      />
 
-      <Route path="/" element={<Navigate to={homeRedirect()} replace />} />
+      <Route path="/" element={<Navigate to={getHomeRoute(user?.role)} replace />} />
 
       {/* User routes */}
       <Route
