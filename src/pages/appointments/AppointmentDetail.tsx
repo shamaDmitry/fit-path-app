@@ -1,4 +1,10 @@
-import { useParams, useNavigate, NavLink, useSearchParams } from "react-router";
+import {
+  useParams,
+  useNavigate,
+  NavLink,
+  useSearchParams,
+  useLocation,
+} from "react-router";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   fetchAppointment,
@@ -42,6 +48,9 @@ const AppointmentDetail = () => {
   const toastShown = useRef(false);
 
   const navigate = useNavigate();
+
+  const location = useLocation();
+
   const dispatch = useAppDispatch();
 
   const { currentAppointment: appointment, loading } = useAppSelector(
@@ -49,8 +58,6 @@ const AppointmentDetail = () => {
   );
   const { trainers } = useAppSelector((s) => s.trainers);
   const { user } = useAppSelector((s) => s.auth);
-
-  console.log("user", user);
 
   const [isPaying, setIsPaying] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -179,6 +186,7 @@ const AppointmentDetail = () => {
 
   const handlePay = async () => {
     setIsPaying(true);
+
     try {
       const { data, error } = await supabase.functions.invoke(
         "create-checkout",
@@ -191,6 +199,7 @@ const AppointmentDetail = () => {
       );
 
       if (error) throw error;
+
       if (data?.url) {
         window.location.href = data.url;
       } else {
@@ -198,6 +207,7 @@ const AppointmentDetail = () => {
       }
     } catch (error: unknown) {
       console.error("Payment error:", error);
+
       toast.error(
         error instanceof Error ? error.message : "Failed to initialize payment",
       );
@@ -206,10 +216,21 @@ const AppointmentDetail = () => {
     }
   };
 
+  console.log("location", location);
+
   return (
     <>
       <div className="mx-auto space-y-6">
-        <Button variant="secondary" onClick={() => navigate(-1)}>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            if (location.state?.fromUrl) {
+              return navigate(location.state.fromUrl);
+            }
+
+            return navigate(-1);
+          }}
+        >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back
         </Button>
 

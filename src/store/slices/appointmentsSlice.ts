@@ -12,7 +12,7 @@ interface AppointmentsState {
 type AppointmentWithRelations =
   & Omit<Appointment, "trainer_name" | "user_name">
   & {
-    trainer?: { full_name: string } | null;
+    trainer?: { full_name: string; color?: string } | null;
     user?: { full_name: string } | null;
   };
 
@@ -36,7 +36,7 @@ export const fetchAdminAppointments = createAsyncThunk(
       .from("appointments")
       .select(`
         *,
-        trainer:trainers(full_name),
+        trainer:trainers(full_name,color),
         user:profiles!user_id(full_name)
       `)
       .order("start_time", { ascending: true });
@@ -107,7 +107,7 @@ export const fetchTrainerAppointments = createAsyncThunk(
       .from("appointments")
       .select(`
         *,
-        trainer:trainers(full_name),
+        trainer:trainers(full_name,color),
         user:profiles!user_id(full_name)
       `)
       .eq("trainer_id", trainerId)
@@ -133,7 +133,7 @@ export const createAppointment = createAsyncThunk(
       .insert([appointment])
       .select(`
         *,
-        trainer:trainers(full_name),
+        trainer:trainers(full_name,color),
         user:profiles!user_id(full_name)
       `)
       .single();
@@ -156,7 +156,7 @@ export const updateAppointmentStatus = createAsyncThunk(
       .eq("id", id)
       .select(`
         *,
-        trainer:trainers(full_name),
+        trainer:trainers(full_name,color),
         user:profiles!user_id(full_name)
       `)
       .single();
@@ -222,6 +222,10 @@ const appointmentsSlice = createSlice({
         );
         if (index !== -1) {
           state.appointments[index] = action.payload;
+        }
+
+        if (state.currentAppointment?.id === action.payload.id) {
+          state.currentAppointment = action.payload;
         }
       });
   },

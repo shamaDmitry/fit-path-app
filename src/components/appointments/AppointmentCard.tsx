@@ -87,7 +87,11 @@ const AppointmentCard = ({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.3 }}
       className="glass rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-shadow"
-      onClick={() => navigate(`/appointments/${appointment.id}`)}
+      onClick={() => {
+        return navigate(`/appointments/${appointment.id}`, {
+          state: { fromUrl: window.location.pathname },
+        });
+      }}
     >
       {/* Trainer color bar */}
       <div

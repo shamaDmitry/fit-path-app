@@ -81,6 +81,7 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         <StatCard
+          color="bg-slate-100 text-slate-700 border-slate-200"
           title="Total Appointments"
           value={appointments.length}
           icon={Calendar}
@@ -89,6 +90,7 @@ const AdminDashboard = () => {
         />
 
         <StatCard
+          color="bg-sky-100 text-sky-700 border-sky-200"
           title="Scheduled"
           value={scheduled}
           icon={Activity}
@@ -100,6 +102,7 @@ const AdminDashboard = () => {
         />
 
         <StatCard
+          color="bg-emerald-100 text-emerald-700 border-emerald-200"
           title="Completed"
           value={completed}
           icon={CheckCircle2}
@@ -111,6 +114,7 @@ const AdminDashboard = () => {
         />
 
         <StatCard
+          color="bg-rose-100 text-rose-700 border-rose-200"
           title="Cancelled"
           value={cancelled}
           icon={XCircle}
@@ -122,6 +126,7 @@ const AdminDashboard = () => {
         />
 
         <StatCard
+          color="bg-indigo-100 text-indigo-700 border-indigo-200"
           title="Total Users"
           value={totalUsers}
           icon={Users}
@@ -129,6 +134,7 @@ const AdminDashboard = () => {
         />
 
         <StatCard
+          color="bg-cyan-100 text-cyan-700 border-cyan-200"
           title="Active Trainers"
           value={trainers.length}
           icon={TrendingUp}
@@ -137,6 +143,7 @@ const AdminDashboard = () => {
         />
 
         <StatCard
+          color="bg-green-100 text-green-700 border-green-200"
           title="Revenue"
           value={`$${totalRevenue}`}
           icon={DollarSign}

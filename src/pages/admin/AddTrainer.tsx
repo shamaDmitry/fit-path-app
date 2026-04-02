@@ -216,7 +216,7 @@ const AddTrainer = () => {
                       {specialties.map((item) => {
                         return (
                           <SelectItem key={item.id} value={item.id}>
-                            {item.label} - {item.value}
+                            {item.label}
                           </SelectItem>
                         );
                       })}

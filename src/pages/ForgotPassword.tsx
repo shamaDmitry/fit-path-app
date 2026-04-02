@@ -29,6 +29,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/50 blur-3xl" />
+
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/50 blur-3xl" />
       </div>
 
@@ -69,6 +70,7 @@ const ForgotPassword = () => {
                 >
                   Email
                 </Label>
+
                 <Input
                   id="email"
                   type="email"

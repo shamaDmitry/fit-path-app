@@ -242,17 +242,29 @@ const trainersSlice = createSlice({
         if (index !== -1) {
           state.trainers[index] = action.payload;
         }
+
+        if (state.currentTrainer?.id === action.payload.id) {
+          state.currentTrainer = action.payload;
+        }
       })
       .addCase(softDeleteTrainer.fulfilled, (state, action) => {
         const index = state.trainers.findIndex((t) => t.id === action.payload);
         if (index !== -1) {
           state.trainers[index].is_active = false;
         }
+
+        if (state.currentTrainer?.id === action.payload) {
+          state.currentTrainer.is_active = false;
+        }
       })
       .addCase(restoreTrainer.fulfilled, (state, action) => {
         const index = state.trainers.findIndex((t) => t.id === action.payload.id);
         if (index !== -1) {
           state.trainers[index] = action.payload;
+        }
+
+        if (state.currentTrainer?.id === action.payload.id) {
+          state.currentTrainer = action.payload;
         }
       });
   },

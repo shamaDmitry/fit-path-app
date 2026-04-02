@@ -101,6 +101,7 @@ const UserBookings = () => {
           <h1 className="text-2xl font-display font-bold text-foreground">
             My Bookings
           </h1>
+
           <p className="text-sm text-muted-foreground mt-1">
             View and manage your appointments
           </p>

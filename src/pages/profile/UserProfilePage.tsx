@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { motion } from "framer-motion";
 import {
@@ -34,15 +34,25 @@ import {
 import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import { toast } from "sonner";
 import PasswordInput from "@/components/shared/PasswordInput";
+import {
+  fetchAdminAppointments,
+  fetchUserAppointments,
+} from "@/store/slices/appointmentsSlice";
 
 const UserProfilePage = () => {
   const dispatch = useAppDispatch();
-
-  const user = useAppSelector((s) => s.auth.user);
-  const session = useAppSelector((s) => s.auth.session);
+  const { user } = useAppSelector((s) => s.auth);
+  const { session } = useAppSelector((s) => s.auth);
   const { isLoading } = useAppSelector((s) => s.auth);
+  const { appointments } = useAppSelector((s) => s.appointments);
 
-  const appointments = useAppSelector((s) => s.appointments.appointments);
+  useEffect(() => {
+    if (user && user?.role === "admin") {
+      dispatch(fetchAdminAppointments());
+    } else if (user && user.id) {
+      dispatch(fetchUserAppointments(user.id));
+    }
+  }, [dispatch, user]);
 
   const [fullName, setFullName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
@@ -83,11 +93,15 @@ const UserProfilePage = () => {
     setIsEditingName(false);
   };
 
-  const myAppointments = appointments.filter((appointment) => {
-    return (
-      appointment.user_id === user.id || appointment.trainer_id === user.id
-    );
-  });
+  const myAppointments =
+    user.role === "admin"
+      ? appointments
+      : appointments.filter((appointment) => {
+          return (
+            appointment.user_id === user.id ||
+            appointment.trainer_id === user.id
+          );
+        });
 
   const scheduled = myAppointments.filter(
     (appointment) => appointment.status === "scheduled",

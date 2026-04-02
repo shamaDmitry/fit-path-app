@@ -206,14 +206,19 @@ export const resetPassword = createAsyncThunk(
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
+
       if (error) throw error;
+
       toast.success("Password reset email sent!");
     } catch (error: unknown) {
       if (error instanceof Error) {
         toast.error(error.message);
+
         return rejectWithValue(error.message);
       }
+
       toast.error("An unknown error occurred");
+
       return rejectWithValue("An unknown error occurred");
     }
   },
