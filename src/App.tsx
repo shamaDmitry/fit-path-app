@@ -28,7 +28,6 @@ import AddTrainer from "@/pages/admin/AddTrainer";
 import EditTrainer from "@/pages/admin/EditTrainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import Colors from "@/pages/colors/Colors";
-import { canAccessColorsPage } from "@/lib/env";
 
 function ProtectedRoute({
   children,
@@ -58,7 +57,6 @@ function ProtectedRoute({
 
 function AppRoutes() {
   const dispatch = useAppDispatch();
-  const showColorsPage = canAccessColorsPage();
 
   const { isAuthenticated, user, isLoading } = useAppSelector((s) => s.auth);
 
@@ -229,13 +227,9 @@ function AppRoutes() {
       <Route
         path="/colors"
         element={
-          showColorsPage ? (
-            <ProtectedRoute>
-              <Colors />
-            </ProtectedRoute>
-          ) : (
-            <Navigate to={homeRedirect()} replace />
-          )
+          <ProtectedRoute>
+            <Colors />
+          </ProtectedRoute>
         }
       />
 

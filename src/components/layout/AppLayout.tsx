@@ -37,7 +37,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import FooterMenuDesktop from "@/components/user/FooterMenuDesktop";
 import FooterMenuMob from "@/components/user/FooterMenuMob";
 import { Spinner } from "@/components/ui/spinner";
-import { canAccessColorsPage } from "@/lib/env";
 
 const userNav = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -78,7 +77,6 @@ function AppSidebarContent() {
   const pathname = location.pathname;
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const showColorsPage = canAccessColorsPage();
 
   const navItems =
     user?.role === "admin"
@@ -167,22 +165,20 @@ function AppSidebarContent() {
                     );
                   })}
 
-                  {showColorsPage && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to="/colors"
-                          className="hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
-                          activeClassName="bg-primary text-primary-foreground font-medium"
-                        >
-                          <Palette className="mr-2 size-6 shrink-0" />
-                          {!collapsed && <span>Colors</span>}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/colors"
+                        className="hover:bg-primary hover:text-primary-foreground transition-colors duration-200"
+                        activeClassName="bg-primary text-primary-foreground font-medium"
+                      >
+                        <Palette className="mr-2 size-6 shrink-0" />
+                        {!collapsed && <span>Colors</span>}
 
-                          {isMobileView && collapsed && <span>Colors</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
+                        {isMobileView && collapsed && <span>Colors</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
