@@ -205,6 +205,18 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async (email: string, { rejectWithValue }) => {
     try {
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+
+      if (!profile) {
+        throw new Error("No account found with this email address.");
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email);
 
       if (error) throw error;

@@ -22,7 +22,7 @@ const ForgotPassword = () => {
   const { isActionLoading: isLoading } = useAppSelector((s) => s.auth);
 
   const [step, setStep] = useState<"email" | "code">("email");
-  const [email, setEmail] = useState("shama.dmitry@gmail.com");
+  const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
 
   const handleSendEmail = async (e: React.FormEvent) => {
@@ -159,9 +159,11 @@ const ForgotPassword = () => {
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <ShieldCheck className="w-6 h-6 text-primary" />
                   </div>
+
                   <CardTitle className="text-xl font-display">
                     Enter Verification Code
                   </CardTitle>
+
                   <CardDescription>
                     We've sent a 6-digit code to{" "}
                     <span className="font-medium text-foreground">{email}</span>
@@ -177,6 +179,7 @@ const ForgotPassword = () => {
                       >
                         Verification Code
                       </Label>
+
                       <Input
                         id="code"
                         type="text"
@@ -191,6 +194,7 @@ const ForgotPassword = () => {
                         disabled={isLoading}
                       />
                     </div>
+
                     <Button
                       type="submit"
                       className="w-full gradient-primary text-primary-foreground h-11 font-medium"
@@ -201,13 +205,15 @@ const ForgotPassword = () => {
                   </form>
 
                   <div className="text-center space-y-3 pt-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setStep("email")}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors block mx-auto"
+                      variant="link"
+                      className="block mx-auto"
                     >
                       Use a different email
-                    </button>
+                    </Button>
+
                     <Link
                       to="/login"
                       className="text-sm text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
