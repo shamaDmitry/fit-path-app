@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { resetPassword, verifyResetOtp } from "@/store/slices/authSlice";
@@ -49,8 +49,7 @@ const ForgotPassword = () => {
 
     try {
       await dispatch(verifyResetOtp({ email, token: code })).unwrap();
-      // After verification, the user is signed in.
-      // We navigate to the reset password page to set the new password.
+
       navigate("/reset-password");
     } catch (error) {
       // Error handled by toast in thunk
@@ -61,6 +60,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/20 blur-3xl" />
+
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-accent/20 blur-3xl" />
       </div>
 
@@ -70,7 +70,7 @@ const ForgotPassword = () => {
         className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
+          <NavLink to="/login" className="inline-flex items-center gap-2 mb-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
@@ -78,7 +78,7 @@ const ForgotPassword = () => {
             <span className="text-2xl font-display font-bold text-foreground">
               FitPath
             </span>
-          </div>
+          </NavLink>
         </div>
 
         <Card className="glass border-border/50 shadow-xl overflow-hidden">
@@ -156,7 +156,7 @@ const ForgotPassword = () => {
                 transition={{ duration: 0.2 }}
               >
                 <CardHeader className="pb-4">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <div className="size-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <ShieldCheck className="w-6 h-6 text-primary" />
                   </div>
 

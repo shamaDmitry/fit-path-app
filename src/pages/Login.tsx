@@ -80,7 +80,7 @@ const Login = () => {
         </div>
 
         <Card className="glass border-border/50">
-          <CardHeader className="pb-4">
+          <CardHeader className="pb-4 text-center">
             <CardTitle className="text-xl font-display">Welcome back</CardTitle>
 
             <CardDescription>Sign in to your account</CardDescription>

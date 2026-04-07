@@ -1,4 +1,10 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router";
 import NotFound from "@/pages/NotFound";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
@@ -66,6 +72,7 @@ function ProtectedRoute({
 
 function AppRoutes() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const { isAuthenticated, user } = useAppSelector((s) => s.auth);
 
@@ -88,11 +95,17 @@ function AppRoutes() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("event, session", { event, session });
+
       if (session) {
         dispatch(setSession({ session, user: null }));
 
         dispatch(fetchProfile(session.user.id));
+
+        if (event === "PASSWORD_RECOVERY") {
+          navigate("/reset-password");
+        }
       } else {
         dispatch(setSession({ session: null, user: null }));
       }

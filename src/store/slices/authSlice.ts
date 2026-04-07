@@ -217,7 +217,9 @@ export const resetPassword = createAsyncThunk(
         throw new Error("No account found with this email address.");
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
       if (error) throw error;
 
@@ -281,17 +283,18 @@ export const updatePassword = createAsyncThunk(
   ) => {
     try {
       const state = getState() as { auth: AuthState };
-      const { user } = state.auth;
+      const { session, user } = state.auth;
 
-      if (!user) throw new Error("User not authenticated");
+      if (!session) throw new Error("User not authenticated");
 
       // Verify current password if provided
       if (currentPassword) {
-        const { error: signInError } = await supabase.auth
-          .signInWithPassword({
-            email: user.email,
-            password: currentPassword,
-          });
+        if (!user) throw new Error("User profile not loaded");
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: currentPassword,
+        });
 
         if (signInError) {
           throw new Error(
@@ -466,6 +469,12 @@ const authSlice = createSlice({
         state.isActionLoading = false;
         state.session = action.payload.session;
         state.isAuthenticated = !!action.payload.session;
+        // If we have a session but no user profile yet, keep loading true
+        if (state.isAuthenticated && !state.user) {
+          state.isLoading = true;
+        } else {
+          state.isLoading = false;
+        }
         // Profile will be fetched by onAuthStateChange in App.tsx
       })
       .addCase(verifyResetOtp.rejected, (state) => {

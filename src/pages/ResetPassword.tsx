@@ -20,7 +20,7 @@ const ResetPassword = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, isAuthenticated, user } = useAppSelector((s) => s.auth);
+  const { isLoading, isAuthenticated, user, isActionLoading } = useAppSelector((s) => s.auth);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -52,6 +52,19 @@ const ResetPassword = () => {
       // Error handled by toast in thunk
     }
   };
+
+  if (isLoading && !isSuccess) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="space-y-4 text-center">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center animate-pulse mx-auto">
+            <KeyRound className="w-6 h-6 text-primary" />
+          </div>
+          <p className="text-muted-foreground animate-pulse">Loading your account...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated && !isSuccess) {
     navigate("/login");
@@ -149,7 +162,7 @@ const ResetPassword = () => {
                   value={password}
                   setPassword={setPassword}
                   placeholder="At least 6 characters"
-                  isLoading={isLoading}
+                  isLoading={isActionLoading}
                 />
               </div>
 
@@ -166,16 +179,16 @@ const ResetPassword = () => {
                   value={confirmPassword}
                   setPassword={setConfirmPassword}
                   placeholder="Repeat new password"
-                  isLoading={isLoading}
+                  isLoading={isActionLoading}
                 />
               </div>
 
               <Button
                 type="submit"
                 className="w-full gradient-primary text-primary-foreground h-11 font-medium mt-2"
-                disabled={isLoading}
+                disabled={isActionLoading}
               >
-                {isLoading ? "Updating..." : "Reset Password"}
+                {isActionLoading ? "Updating..." : "Reset Password"}
               </Button>
             </form>
           </CardContent>
