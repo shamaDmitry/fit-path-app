@@ -96,8 +96,6 @@ function AppRoutes() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("event, session", { event, session });
-
       if (session) {
         dispatch(setSession({ session, user: null }));
 

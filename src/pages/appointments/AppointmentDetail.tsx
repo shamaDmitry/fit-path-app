@@ -216,8 +216,6 @@ const AppointmentDetail = () => {
     }
   };
 
-  console.log("location", location);
-
   return (
     <>
       <div className="mx-auto space-y-6">
